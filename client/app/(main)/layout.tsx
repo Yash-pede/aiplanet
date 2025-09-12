@@ -7,7 +7,7 @@ const Layout = (props: Props) => {
   return (
     <main className="overflow-hidden h-screen w-full">
       <Navbar />
-      <main className="p-2 md:p-4">
+      <main className="">
       {props.children}
       </main>
     </main>

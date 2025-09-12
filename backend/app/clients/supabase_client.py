@@ -11,6 +11,7 @@ def supabase_service_client() -> Client:
 
 
 def supabase_user_client(access_token: str) -> Client:
+
     client = create_client(
         settings.SUPABASE_URL,
         settings.SUPABASE_ANON_KEY,

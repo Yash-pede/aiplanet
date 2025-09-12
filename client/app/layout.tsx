@@ -3,6 +3,8 @@ import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { TanstackProvider } from "@/providers/tanstack-provider";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 const font = DM_Sans({ subsets: ["latin"] });
 
@@ -18,17 +20,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={font.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster />
-        </ThemeProvider>
-      </body>
+      <TanstackProvider>
+        <body className={font.className + " bg-background text-foreground"}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <SidebarProvider>{children}</SidebarProvider>
+            <Toaster />
+          </ThemeProvider>
+        </body>
+      </TanstackProvider>
     </html>
   );
 }

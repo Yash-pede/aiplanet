@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "./ui/button";
-import { Plus } from "lucide-react";
+import { Loader2Icon, Plus } from "lucide-react";
 import { Input } from "./ui/input";
 import z from "zod";
 import { useForm } from "react-hook-form";
@@ -18,15 +18,20 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "./ui/textarea";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { PostWorkflows } from "@/lib/mutateFunctions";
+import React from "react";
 
 const NewWrokflow = () => {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = React.useState(false);
+
   const formSchema = z.object({
     name: z
       .string()
@@ -43,12 +48,23 @@ const NewWrokflow = () => {
     },
   });
 
+  const mutation = useMutation({
+    mutationFn: PostWorkflows,
+    onSuccess: () => {
+      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["workflows"] });
+    },
+  });
+
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    mutation.mutate({
+      name: values.name,
+      description: values.description,
+    });
   }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
           <Plus />
@@ -94,7 +110,10 @@ const NewWrokflow = () => {
               <DialogClose asChild>
                 <Button variant="outline">Cancel</Button>
               </DialogClose>
-              <Button type="submit">Save changes</Button>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending && <Loader2Icon className="animate-spin" />}
+                Create
+              </Button>
             </DialogFooter>
           </form>
         </Form>

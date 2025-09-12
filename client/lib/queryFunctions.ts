@@ -1,0 +1,11 @@
+import api from "./axios";
+
+export const GetWorkflows = async () => {
+  const response = await api.get("/workflows");
+  return response.data;
+};
+
+export const GetWorkflowById = async (id: string) => {
+  const response = await api.get(`/workflows/${id}`);
+  return response.data;
+};

@@ -2,7 +2,7 @@ from supabase import Client
 from typing import List, Optional, Dict, Any
 from uuid import UUID
 from app.dao.workflows_dao import WorkflowsDAO
-from app.schemas.workflow import WorkflowCreate, WorkflowOut
+from app.schemas.workflow import WorkflowCreate, WorkflowOut, WorkflowUpdate
 
 
 class WorkflowsService:
@@ -18,17 +18,13 @@ class WorkflowsService:
         return WorkflowOut(**workflow) if workflow else None
 
     def create_workflow(self, payload: WorkflowCreate) -> WorkflowOut:
-        if not isinstance(payload.definition, dict):
-            raise ValueError("Workflow definition must be a dictionary")
-        
         workflow = self.dao.create_workflow(
             name=payload.name,
             description=payload.description,
-            definition=payload.definition
         )
         return WorkflowOut(**workflow)
 
-    def update_workflow(self, workflow_id: UUID, payload: WorkflowCreate) -> WorkflowOut:
+    def update_workflow(self, workflow_id: UUID, payload: WorkflowUpdate) -> WorkflowOut:
         if not isinstance(payload.definition, dict):
             raise ValueError("Workflow definition must be a dictionary")
         

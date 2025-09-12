@@ -21,7 +21,6 @@ async def create_workflow(
     payload: WorkflowCreate,
     client: Client = Depends(get_supabase_user)
 ):
-    """Create a new workflow."""
     service = WorkflowsService(client)
     try:
         return service.create_workflow(payload)

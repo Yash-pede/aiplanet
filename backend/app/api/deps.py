@@ -7,7 +7,6 @@ security = HTTPBearer()
 
 
 def get_bearer_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
-    """Extract Bearer token from Authorization header."""
     if credentials.scheme != "Bearer":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -17,7 +16,6 @@ def get_bearer_token(credentials: HTTPAuthorizationCredentials = Depends(securit
 
 
 def get_supabase_user(token: str = Depends(get_bearer_token)) -> Client:
-    """Get user-scoped Supabase client."""
     try:
         client = supabase_user_client(token)
         return client

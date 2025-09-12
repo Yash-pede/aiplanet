@@ -22,9 +22,9 @@ class WorkflowsDAO:
         return response.data
 
     def create_workflow(
-        self, name: str, description: Optional[str], definition: Dict[str, Any]
+        self, name: str, description: Optional[str]
     ) -> Dict[str, Any]:
-        data = {"name": name, "description": description, "definition": definition}
+        data = {"name": name, "description": description}
         response = self.client.table("workflows").insert(data).execute()
         return response.data[0]
 
