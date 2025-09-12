@@ -14,18 +14,30 @@ import { Database } from "@/database.types";
 import ErrorCard from "@/components/layput/error/ErrorCard";
 import { SkeletonCard } from "@/components/layput/skeleton/CardSkeleton";
 import Link from "next/link";
+import { useWorkflowStore } from "@/providers/workflow-store-provider";
+import { useEffect } from "react";
 
 const Page = () => {
-  const { data, error, isLoading } = useQuery<
+  const workflows = useWorkflowStore((s) => s.workflows);
+  const setWorkflows = useWorkflowStore((s) => s.setWorkflows);
+  const { data, error, isLoading, isSuccess } = useQuery<
     Database["public"]["Tables"]["workflows"]["Row"][]
   >({
     queryKey: ["workflows"],
     queryFn: GetWorkflows,
   });
+  useEffect(() => {
+    if (isSuccess) {
+      setWorkflows(data);
+    }
+  }, [data, isSuccess, setWorkflows]);
 
   if (error) {
     return (
-      <ErrorCard title="Failed to load workflows" onRetry={() => window.location.reload()} />
+      <ErrorCard
+        title="Failed to load workflows"
+        onRetry={() => window.location.reload()}
+      />
     );
   }
 
@@ -44,9 +56,9 @@ const Page = () => {
         </div>
       )}
 
-      {!isLoading && data && data.length > 0 && (
+      {!isLoading && workflows.length > 0 && (
         <div className="flex flex-col md:flex-row flex-wrap gap-5">
-          {data.map((workflow) => (
+          {workflows.map((workflow) => (
             <Link href={`/workflow/${workflow.id}`} key={workflow.id}>
               <Card className="md:w-96 w-full">
                 <CardHeader>
@@ -62,7 +74,7 @@ const Page = () => {
         </div>
       )}
 
-      {!isLoading && data && data.length === 0 && (
+      {!isLoading && workflows.length === 0 && (
         <div className="grid place-items-center w-full mt-32">
           <Card className="md:w-96 w-full">
             <CardHeader>

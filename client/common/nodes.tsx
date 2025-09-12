@@ -1,6 +1,7 @@
 import { BookOpen, FileInput, FileOutput, Stars } from "lucide-react";
+import { CustomNode } from "./types";
 
-export const nodes = [
+export const nodes: CustomNode[] = [
   {
     title: "user Query",
     type: "input",
@@ -10,20 +11,20 @@ export const nodes = [
     height: 300,
   },
   {
-    title: "LLM",
-    type: "llm",
-    icon: Stars,
-    description: "Let LLM search info in your file",
-    width: 500,
-    height: 300,
-  },
-  {
     title: "Knowledge Base",
     type: "knowledge-base",
     icon: BookOpen,
     description: "Run a Query with LLM",
     width: 500,
-    height: 300,
+    height: 400,
+  },
+  {
+    title: "LLM",
+    type: "llm",
+    icon: Stars,
+    description: "Let LLM search info in your file",
+    width: 500,
+    height: 600,
   },
   {
     title: "Output",
@@ -34,3 +35,5 @@ export const nodes = [
     height: 300,
   },
 ];
+
+export const DEFAULT_PROMPT ="You are a helpful PDF assistant. Use web search if the PDF lacks context"

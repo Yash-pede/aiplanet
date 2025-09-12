@@ -1,4 +1,5 @@
 import Navbar from "@/components/navbar/Navbar";
+import { WorkflowStoreProvider } from "@/providers/workflow-store-provider";
 import React from "react";
 
 type Props = { children: React.ReactNode };
@@ -8,7 +9,7 @@ const Layout = (props: Props) => {
     <main className="overflow-hidden h-screen w-full">
       <Navbar />
       <main className="">
-      {props.children}
+        <WorkflowStoreProvider>{props.children}</WorkflowStoreProvider>
       </main>
     </main>
   );

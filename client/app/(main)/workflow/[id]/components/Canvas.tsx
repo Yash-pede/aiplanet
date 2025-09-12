@@ -4,8 +4,10 @@ import {
   Background,
   Connection,
   Controls,
+  MiniMap,
   ReactFlow,
   ReactFlowProvider,
+  SnapGrid,
   addEdge,
   useEdgesState,
   useNodesState,
@@ -41,6 +43,8 @@ export default function Canvas({
     output: OutputNode,
   };
 
+  const snapGrid: SnapGrid = [20, 20];
+
   return (
     <ReactFlowProvider>
       <div className="flex grow  h-full w-full">
@@ -55,11 +59,24 @@ export default function Canvas({
             nodeTypes={nodeTypes}
             fitView
             colorMode={theme === "dark" ? "dark" : "light"}
-            // minZoom={1}
+            minZoom={0.8}
             maxZoom={1}
+            snapToGrid={true}
+            snapGrid={snapGrid}
           >
             {nodes.length === 0 && edges.length === 0 && <EmptyCanvas />}
-            <Controls />
+            <Controls />{" "}
+            <MiniMap
+            // nodeStrokeColor={(n) => {
+            //   if (n.type === "input") return "#0041d0";
+            //   if (n.type === "selectorNode") return computedStyles.getPropertyValue("--background");
+            //   if (n.type === "output") return "#ff0072";
+            // }}
+            // nodeColor={(n) => {
+            //   if (n.type === "selectorNode") return bgColor;
+            //   return "#fff";
+            // }}
+            />
             <Background bgColor={"var(--background)"} />
           </ReactFlow>
         </div>

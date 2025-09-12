@@ -6,11 +6,11 @@ from fastapi.exceptions import HTTPException
 
 from app.core.config import settings
 from app.core.logging import setup_logging
-from app.api.routes import health, workflows
+from app.api.routes import health, workflows, documents
 import os
 from dotenv import load_dotenv
 
-load_dotenv() 
+load_dotenv()
 
 setup_logging()
 
@@ -29,7 +29,7 @@ app.add_middleware(
 async def add_request_id_and_handle_exceptions(request: Request, call_next):
     request_id = str(uuid.uuid4())
     request.state.request_id = request_id
-    
+
     try:
         response = await call_next(request)
         response.headers["X-Request-ID"] = request_id
@@ -41,13 +41,13 @@ async def add_request_id_and_handle_exceptions(request: Request, call_next):
                 "detail": "Internal server error",
                 "request_id": request_id,
             },
-            headers={"X-Request-ID": request_id}
+            headers={"X-Request-ID": request_id},
         )
 
 
 app.include_router(health.router, prefix=settings.API_PREFIX, tags=["health"])
 app.include_router(workflows.router, prefix=settings.API_PREFIX, tags=["workflows"])
-# app.include_router(documents.router, prefix=settings.API_PREFIX, tags=["documents"])
+app.include_router(documents.router, prefix=settings.API_PREFIX, tags=["documents"])
 # app.include_router(sessions.router, prefix=settings.API_PREFIX, tags=["sessions"])
 # app.include_router(messages.router, prefix=settings.API_PREFIX, tags=["messages"])
 
@@ -59,4 +59,5 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=settings.DEBUG)
