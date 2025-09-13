@@ -81,7 +81,7 @@ export const useFileUpload = (
     errors: [],
   })
 
-  const inputRef = useRef<HTMLInputElement>(null)
+  const queryNodeRef = useRef<HTMLInputElement>(null)
 
   const validateFile = useCallback(
     (file: File | FileMetadata): string | null => {
@@ -151,8 +151,8 @@ export const useFileUpload = (
         }
       })
 
-      if (inputRef.current) {
-        inputRef.current.value = ""
+      if (queryNodeRef.current) {
+        queryNodeRef.current.value = ""
       }
 
       const newState = {
@@ -254,9 +254,9 @@ export const useFileUpload = (
         }))
       }
 
-      // Reset input value after handling files
-      if (inputRef.current) {
-        inputRef.current.value = ""
+      // Reset queryNode value after handling files
+      if (queryNodeRef.current) {
+        queryNodeRef.current.value = ""
       }
     },
     [
@@ -334,8 +334,8 @@ export const useFileUpload = (
       e.stopPropagation()
       setState((prev) => ({ ...prev, isDragging: false }))
 
-      // Don't process files if the input is disabled
-      if (inputRef.current?.disabled) {
+      // Don't process files if the queryNode is disabled
+      if (queryNodeRef.current?.disabled) {
         return
       }
 
@@ -362,8 +362,8 @@ export const useFileUpload = (
   )
 
   const openFileDialog = useCallback(() => {
-    if (inputRef.current) {
-      inputRef.current.click()
+    if (queryNodeRef.current) {
+      queryNodeRef.current.click()
     }
   }, [])
 
@@ -375,7 +375,7 @@ export const useFileUpload = (
         onChange: handleFileChange,
         accept: props.accept || accept,
         multiple: props.multiple !== undefined ? props.multiple : multiple,
-        ref: inputRef,
+        ref: queryNodeRef,
       }
     },
     [accept, multiple, handleFileChange]

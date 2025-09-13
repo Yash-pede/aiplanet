@@ -8,19 +8,33 @@ class WorkflowCreate(BaseModel):
     description: Optional[str] = None
 
 
-class WorkflowUpdate(BaseModel):
-    name: str
-    description: Optional[str] = None
-    definition: Optional[Dict[str, Any]]
-    status: Optional[str] = None
+class NodeMeasured(BaseModel):
+    width: Optional[float] = None
+    height: Optional[float] = None
+
+
+class NodePosition(BaseModel):
+    x: float
+    y: float
+
+
+class NodeData(BaseModel):
+    nodeName: Optional[str] = None
+    nodeDescription: Optional[str] = None
 
 
 class Node(BaseModel):
-    pass
+    id: str
+    type: Optional[str] = None
+    position: Optional[NodePosition] = None
+    data: Optional[NodeData] = None
+    measured: Optional[NodeMeasured] = None
 
 
 class Edge(BaseModel):
-    pass
+    id: str
+    source: str
+    target: str
 
 
 class Flow(BaseModel):
@@ -29,7 +43,7 @@ class Flow(BaseModel):
 
 
 class DocumentUrl(BaseModel):
-    pass
+    url: Optional[str] = None
 
 
 class Definition(BaseModel):
@@ -54,3 +68,10 @@ class WorkflowOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class WorkflowUpdate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    definition: Optional[Definition] = None
+    status: Optional[str] = None

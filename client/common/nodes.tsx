@@ -9,7 +9,7 @@ import { Position } from "@xyflow/react";
 export const nodes: CustomNode[] = [
   {
     title: "user Query",
-    type: "input",
+    type: "query",
     icon: FileInput,
     description: "Entry Point for query",
     width: 400,
@@ -55,7 +55,7 @@ export const DEFAULT_PROMPT =
   "You are a helpful PDF assistant. Use web search if the PDF lacks context";
 
 export const nodeTypes = {
-  input: InputNode,
+  query: InputNode,
   llm: LLMNode,
   "knowledge-base": KnowledgeBaseNode,
   output: OutputNode,

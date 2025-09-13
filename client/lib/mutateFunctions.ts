@@ -21,6 +21,7 @@ export const UpdateWorkflow = async ({
     description,
     definition,
   });
+  console.log("Update WRKFLOW: " ,JSON.stringify({ name, description, definition }, null, 2));
   return response.data;
 };
 

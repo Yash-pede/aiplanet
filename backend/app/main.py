@@ -9,6 +9,7 @@ from app.core.logging import setup_logging
 from app.api.routes import health, workflows, documents, sessions, messages, metadata
 import os
 from dotenv import load_dotenv
+import traceback
 
 load_dotenv()
 
@@ -18,7 +19,7 @@ app = FastAPI(title=settings.APP_NAME)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -34,15 +35,13 @@ async def add_request_id_and_handle_exceptions(request: Request, call_next):
         response = await call_next(request)
         response.headers["X-Request-ID"] = request_id
         return response
+
     except Exception as e:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={
-                "detail": "Internal server error",
-                "request_id": request_id,
-            },
-            headers={"X-Request-ID": request_id},
-        )
+        print("🔥 Internal Server Error:", str(e))
+        traceback.print_exc()
+        raise e  # let FastAPI handle it (CORS headers included)
+
+
 
 
 app.include_router(health.router, prefix=settings.API_PREFIX, tags=["health"])

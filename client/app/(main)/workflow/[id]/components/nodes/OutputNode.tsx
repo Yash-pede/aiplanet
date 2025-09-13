@@ -1,4 +1,3 @@
-import { useWorkflowStore } from "@/providers/workflow-store-provider";
 import { NodeProps } from "@xyflow/react";
 import React from "react";
 import NodeWrapper from "./NodeWrapper";
@@ -7,7 +6,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
 const OutputNode = (props: NodeProps) => {
-  const selectedWorkflow = useWorkflowStore((s) => s.selectedWorkflow);
   return (
     <NodeWrapper data={props}>
       <CardContent>

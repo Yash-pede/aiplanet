@@ -44,10 +44,11 @@ const LLMNode = (props: NodeProps) => {
           <Textarea
             id="sys-prompt"
             value={
-              selectedWorkflow.definition?.prompt
+              selectedWorkflow.definition?.prompt !== ""
                 ? selectedWorkflow.definition?.prompt
-                : DEFAULT_PROMPT
+                : undefined
             }
+            defaultValue={DEFAULT_PROMPT}
             onChange={(e) => {
               updateSelectedWorkflowDefinition({
                 prompt: e.target.value,

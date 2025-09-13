@@ -100,15 +100,6 @@ export default function Canvas() {
             {nodes.length === 0 && edges.length === 0 && <EmptyCanvas />}
             <Controls />
             <MiniMap
-              // nodeStrokeColor={(n) => {
-              //   if (n.type === "input") return "#0041d0";
-              //   if (n.type === "selectorNode") return computedStyles.getPropertyValue("--background");
-              //   if (n.type === "output") return "#ff0072";
-              // }}
-              // nodeColor={(n) => {
-              //   if (n.type === "selectorNode") return bgColor;
-              //   return "#fff";
-              // }}
               style={{
                 top: 0,
                 height: 120,
