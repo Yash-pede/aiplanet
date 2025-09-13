@@ -1,4 +1,5 @@
 import { Database } from "@/database.types";
+import { Edge, Node } from "@xyflow/react";
 
 export type CustomNode = {
   title: string;
@@ -17,6 +18,11 @@ export type Workflow = {
     llmModel?: string;
     prompt?: string;
     temperature?: number;
+    query?: string;
+    flow?: {
+      nodes: Node[];
+      edges: Edge[];
+    };
   };
   description: string | null;
   id: string;

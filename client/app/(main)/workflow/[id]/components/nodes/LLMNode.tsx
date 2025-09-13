@@ -20,7 +20,6 @@ const LLMNode = (props: NodeProps) => {
   const updateSelectedWorkflowDefinition = useWorkflowStore(
     (s) => s.updateSelectedWorkflowDefinition
   );
-  console.log(selectedWorkflow.definition);
 
   return (
     <NodeWrapper data={props}>
@@ -54,7 +53,7 @@ const LLMNode = (props: NodeProps) => {
                 prompt: e.target.value,
               });
             }}
-            defaultValue={DEFAULT_PROMPT}
+            // defaultValue={DEFAULT_PROMPT}
             placeholder="Write your query here."
             className="resize-none max-h-32 min-h-32"
           />

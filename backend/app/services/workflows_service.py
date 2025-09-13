@@ -25,8 +25,8 @@ class WorkflowsService:
         return WorkflowOut(**workflow)
 
     def update_workflow(self, workflow_id: UUID, payload: WorkflowUpdate) -> WorkflowOut:
-        if not isinstance(payload.definition, dict):
-            raise ValueError("Workflow definition must be a dictionary")
+        # if payload.definition is None or not isinstance(payload.definition, dict) :
+        #     raise ValueError("Workflow definition must be a dictionary")
         
         workflow = self.dao.update_workflow(
             workflow_id=workflow_id,

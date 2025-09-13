@@ -11,12 +11,14 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type ErrorCardProps = {
   title?: string;
   description?: string;
   ctaText?: string;
   onRetry?: () => void;
+  className?: string;
 };
 
 const ErrorCard = ({
@@ -24,13 +26,14 @@ const ErrorCard = ({
   description = "We couldn’t load the data. Please try again.",
   ctaText = "Retry",
   onRetry,
+  className
 }: ErrorCardProps) => {
   return (
-    <div className="w-full h-full grid place-items-center mt-4">
+    <div className={cn("w-full h-full grid place-items-center mt-4", className)}>
       <Card className="w-full max-w-md border-red-500 border">
         <CardHeader className="flex flex-col items-center text-center">
           <AlertTriangle className="text-red-500 w-8 h-8 mb-2" />
-          <CardTitle className="text-red-700">{title}</CardTitle>
+          <CardTitle className="text-red-700 text-lg">{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
         </CardHeader>
         {onRetry && (

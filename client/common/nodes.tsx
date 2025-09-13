@@ -1,5 +1,9 @@
 import { BookOpen, FileInput, FileOutput, Stars } from "lucide-react";
 import { CustomNode } from "./types";
+import InputNode from "@/app/(main)/workflow/[id]/components/nodes/InputNode";
+import LLMNode from "@/app/(main)/workflow/[id]/components/nodes/LLMNode";
+import KnowledgeBaseNode from "@/app/(main)/workflow/[id]/components/nodes/KnowledgeBaseNode";
+import OutputNode from "@/app/(main)/workflow/[id]/components/nodes/OutputNode";
 
 export const nodes: CustomNode[] = [
   {
@@ -37,3 +41,11 @@ export const nodes: CustomNode[] = [
 ];
 
 export const DEFAULT_PROMPT ="You are a helpful PDF assistant. Use web search if the PDF lacks context"
+
+
+ export const nodeTypes = {
+    input: InputNode,
+    llm: LLMNode,
+    "knowledge-base": KnowledgeBaseNode,
+    output: OutputNode,
+  };

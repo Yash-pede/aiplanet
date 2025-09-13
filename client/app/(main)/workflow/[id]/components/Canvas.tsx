@@ -1,5 +1,5 @@
 "use client";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import {
   Background,
   Connection,
@@ -9,57 +9,88 @@ import {
   ReactFlowProvider,
   SnapGrid,
   addEdge,
+  applyEdgeChanges,
+  applyNodeChanges,
   useEdgesState,
   useNodesState,
 } from "@xyflow/react";
-
+import { useDebouncedCallback } from "use-debounce";
 import "@xyflow/react/dist/style.css";
 import { CanvasSidebar } from "./Sidebar";
 import { useTheme } from "next-themes";
-import { Database } from "@/database.types";
 import EmptyCanvas from "./EmptyCanvas";
-import InputNode from "./nodes/InputNode";
-import LLMNode from "./nodes/LLMNode";
-import KnowledgeBaseNode from "./nodes/KnowledgeBaseNode";
-import OutputNode from "./nodes/OutputNode";
+import { nodeTypes } from "@/common/nodes";
+import { useWorkflowStore } from "@/providers/workflow-store-provider";
 
-export default function Canvas({
-  workflow,
-}: {
-  workflow: Database["public"]["Tables"]["workflows"]["Row"];
-}) {
+export default function Canvas() {
   const { theme } = useTheme();
-  const [nodes, _, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    []
+  const selectedWorkflow = useWorkflowStore((s) => s.selectedWorkflow);
+  const [nodes, setNodes, onNodesChange] = useNodesState(
+    selectedWorkflow?.definition?.flow?.nodes ?? []
+  );
+  const [edges, setEdges, onEdgesChange] = useEdgesState(
+    selectedWorkflow?.definition?.flow?.edges ?? []
+  );
+  useEffect(() => {
+    if (selectedWorkflow?.definition?.flow) {
+      setNodes(selectedWorkflow.definition.flow.nodes || []);
+      setEdges(selectedWorkflow.definition.flow.edges || []);
+    }
+  }, [selectedWorkflow?.id, setNodes, setEdges]);
+
+  const saveFlow = useWorkflowStore((s) => s.saveFlow);
+  const saveFlowDebounced = useDebouncedCallback((nodes, edges) => {
+    saveFlow(nodes, edges);
+  }, 500);
+  const handleNodesChange = useCallback(
+    (changes) => {
+      setNodes((nds) => {
+        const newNodes = applyNodeChanges(changes, nds);
+        saveFlowDebounced(newNodes, edges);
+        return newNodes;
+      });
+    },
+    [setNodes, edges, saveFlowDebounced]
   );
 
-  const nodeTypes = {
-    input: InputNode,
-    llm: LLMNode,
-    "knowledge-base": KnowledgeBaseNode,
-    output: OutputNode,
-  };
+  const handleEdgesChange = useCallback(
+    (changes) => {
+      setEdges((eds) => {
+        const newEdges = applyEdgeChanges(changes, eds);
+        saveFlowDebounced(nodes, newEdges);
+        return newEdges;
+      });
+    },
+    [setEdges, nodes, saveFlowDebounced]
+  );
+
+  const onConnect = useCallback(
+    (params: Connection) => {
+      setEdges((eds) => {
+        const newEdges = addEdge(params, eds);
+        saveFlowDebounced(nodes, newEdges);
+        return newEdges;
+      });
+    },
+    [setEdges, nodes, saveFlowDebounced]
+  );
 
   const snapGrid: SnapGrid = [20, 20];
-
   return (
     <ReactFlowProvider>
       <div className="flex grow  h-full w-full">
-        <CanvasSidebar workflow={workflow} />
+        <CanvasSidebar />
         <div className="grow h-full">
           <ReactFlow
             nodes={nodes}
             edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
+            onNodesChange={handleNodesChange}
+            onEdgesChange={handleEdgesChange}
             onConnect={onConnect}
             nodeTypes={nodeTypes}
             fitView
             colorMode={theme === "dark" ? "dark" : "light"}
-            minZoom={0.8}
+            // minZoom={0.8}
             maxZoom={1}
             snapToGrid={true}
             snapGrid={snapGrid}

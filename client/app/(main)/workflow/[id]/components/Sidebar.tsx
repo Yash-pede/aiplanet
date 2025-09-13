@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Database } from "@/database.types";
 import { cn } from "@/lib/utils";
 import { useDraggable } from "@neodrag/react";
 import { Node, useReactFlow, XYPosition } from "@xyflow/react";
@@ -20,10 +19,13 @@ import {
 } from "@/components/ui/sidebar";
 
 import { nodes } from "@/common/nodes";
-let id = 0;
-const getId = () => `dndnode_${id++}`;
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { UpdateWorkflow } from "@/lib/mutateFunctions";
+import { useWorkflowStore } from "@/providers/workflow-store-provider";
+import { Loader2 } from "lucide-react";
 
-// Draggable node wrapper component
+const getId = () => `node_${Date.now()}`;
+
 interface DraggableNodeProps {
   className?: string;
   children: React.ReactNode;
@@ -77,19 +79,27 @@ function DraggableNode({
   });
 
   return (
-    <div className={cn("dndnode cursor-move", className)} ref={draggableRef}>
+    <div className={cn("node cursor-move", className)} ref={draggableRef}>
       {children}
     </div>
   );
 }
 
-// Sidebar with draggable node items
-export function CanvasSidebar({
-  workflow,
-}: {
-  workflow: Database["public"]["Tables"]["workflows"]["Row"];
-}) {
+export function CanvasSidebar() {
   const { setNodes, screenToFlowPosition } = useReactFlow();
+  const selectedWorkflow = useWorkflowStore((s) => s.selectedWorkflow);
+  const updateSelectedWorkflow = useWorkflowStore(
+    (s) => s.updateSelectedWorkflow
+  );
+  const queryClient = useQueryClient();
+  const { mutate: updateWorkflow, isPending } = useMutation({
+    mutationFn: UpdateWorkflow,
+    onSuccess() {
+      queryClient.invalidateQueries({
+        queryKey: ["workflow", selectedWorkflow.id],
+      });
+    },
+  });
 
   const handleNodeDrop = useCallback(
     (
@@ -126,18 +136,28 @@ export function CanvasSidebar({
     },
     [setNodes, screenToFlowPosition]
   );
-
- 
-
   return (
     <Sidebar variant="floating" className="relative h-[calc(100vh-4rem)]">
       <SidebarHeader>
-        <Button>Save</Button>
+        <Button disabled={isPending} onClick={() => updateWorkflow(selectedWorkflow)}>
+          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save
+        </Button>
         <Input
           type="text"
           placeholder="Workflow name"
           className="text-foreground"
-          defaultValue={workflow.name}
+          defaultValue={selectedWorkflow?.name ?? ""}
+          onBlur={(e) => {
+            if (selectedWorkflow?.name !== e.target.value) {
+              updateSelectedWorkflow({ name: e.target.value });
+            }
+          }}
+          disabled={isPending}
+          onChange={(e) => {
+            if (selectedWorkflow?.name !== e.target.value) {
+              updateSelectedWorkflow({ name: e.target.value });
+            }
+          }}
         />
       </SidebarHeader>
 

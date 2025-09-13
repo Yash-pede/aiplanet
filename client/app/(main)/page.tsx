@@ -10,22 +10,32 @@ import {
 import NewWrokflow from "@/components/NewWrokflow";
 import { useQuery } from "@tanstack/react-query";
 import { GetWorkflows } from "@/lib/queryFunctions";
-import { Database } from "@/database.types";
 import ErrorCard from "@/components/layput/error/ErrorCard";
 import { SkeletonCard } from "@/components/layput/skeleton/CardSkeleton";
 import Link from "next/link";
 import { useWorkflowStore } from "@/providers/workflow-store-provider";
 import { useEffect } from "react";
-
+import { Workflow } from "@/common/types";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 const Page = () => {
   const workflows = useWorkflowStore((s) => s.workflows);
   const setWorkflows = useWorkflowStore((s) => s.setWorkflows);
+  const selectWorkflow = useWorkflowStore((s) => s.selectWorkflow);
+
   const { data, error, isLoading, isSuccess } = useQuery<
-    Database["public"]["Tables"]["workflows"]["Row"][]
+    Workflow[] | undefined,
+    Error
   >({
     queryKey: ["workflows"],
     queryFn: GetWorkflows,
   });
+  
+  useEffect(() => {
+    selectWorkflow(null);
+  }, [selectWorkflow]);
+
   useEffect(() => {
     if (isSuccess) {
       setWorkflows(data);
@@ -66,7 +76,7 @@ const Page = () => {
                   <CardDescription>{workflow.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p>{workflow.description}</p>
+                  <p>{dayjs(workflow.updated_at).fromNow()}</p>
                 </CardContent>
               </Card>
             </Link>

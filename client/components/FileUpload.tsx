@@ -12,11 +12,32 @@ import { formatBytes, useFileUpload } from "@/hooks/use-file-upload";
 import { useWorkflowStore } from "@/providers/workflow-store-provider";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { Database } from "@/database.types";
+import { GetWorkflowDocument } from "@/lib/queryFunctions";
+import ErrorCard from "./layput/error/ErrorCard";
+import { Skeleton } from "./ui/skeleton";
 
 export default function FileUploadDirect() {
   const maxSize = 5 * 1024 * 1024; // 5 MB
   const supabase = createClient();
 
+  const selectedWorkflow = useWorkflowStore((s) => s.selectedWorkflow);
+
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+
+  const {
+    data: initialDocument,
+    isLoading,
+    error,
+    isSuccess,
+  } = useQuery<Database["public"]["Tables"]["documents"]["Row"]>({
+    queryKey: ["documents", selectedWorkflow?.id],
+    enabled: !!selectedWorkflow,
+    queryFn: () => GetWorkflowDocument(selectedWorkflow?.id as string),
+  });
   const [
     { files, isDragging, errors },
     {
@@ -30,14 +51,10 @@ export default function FileUploadDirect() {
     },
   ] = useFileUpload({
     maxSize,
+    accept: "application/pdf",
+    multiple: false,
   });
-
   const fileWrapper = files[0];
-  const selectedWorkflow = useWorkflowStore((s) => s.selectedWorkflow);
-
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!fileWrapper?.file || !selectedWorkflow) return;
@@ -106,6 +123,22 @@ export default function FileUploadDirect() {
     doUpload();
   }, [fileWrapper, selectedWorkflow, supabase]);
 
+  if (error) return <ErrorCard description="Error loading document" />;
+  if (isLoading) return <Skeleton className="w-full min-h-28" />;
+  if (initialDocument[0]?.file_url) {
+    return (
+      <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center gap-2">
+          <PaperclipIcon />
+          <span className="truncate">{initialDocument[0].file_name}</span>
+        </div>
+        <Link href={initialDocument[0].file_url} target="_blank">
+          <ArrowUpRightFromSquare />
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <div
@@ -140,7 +173,7 @@ export default function FileUploadDirect() {
             <PaperclipIcon />
             <span className="truncate">{fileWrapper.file.name}</span>
           </div>
-          <Link href={uploadedUrl} target="_blank">
+          <Link href={uploadedUrl ?? ""} target="_blank">
             <ArrowUpRightFromSquare />
           </Link>
         </div>

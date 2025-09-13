@@ -50,7 +50,6 @@ async def update_workflow(
     payload: WorkflowUpdate,
     client: Client = Depends(get_supabase_user),
 ):
-    """Update a workflow."""
     service = WorkflowsService(client)
     try:
         return service.update_workflow(workflow_id, payload)

@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import NodeWrapper from "./NodeWrapper";
-import { NodeProps } from "@xyflow/react";
+import { Handle, NodeProps, Position } from "@xyflow/react";
 import { CardContent } from "@/components/ui/card";
 import FileUpload from "@/components/FileUpload";
 import { useWorkflowStore } from "@/providers/workflow-store-provider";
@@ -21,6 +21,7 @@ const KnowledgeBaseNode = (props: NodeProps) => {
   );
   return (
     <NodeWrapper data={props}>
+      <Handle type="target" position={Position.Left} />
       <CardContent>
         <div className="grid w-full items-center gap-5">
           <FileUpload />
@@ -43,6 +44,7 @@ const KnowledgeBaseNode = (props: NodeProps) => {
           </Select>
         </div>
       </CardContent>
+      <Handle type="source" position={Position.Right} />
     </NodeWrapper>
   );
 };

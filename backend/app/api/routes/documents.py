@@ -20,14 +20,6 @@ async def create_document(
     return service.create_document(payload)
 
 
-@router.get("/workflows/{workflow_id}/documents", response_model=List[DocumentOut])
-async def list_documents_by_workflow(
-    workflow_id: UUID, client: Client = Depends(get_supabase_user)
-):
-    service = DocumentsService(client)
-    return service.list_documents_by_workflow(workflow_id)
-
-
 @router.get("/documents/{document_id}", response_model=DocumentOut)
 async def get_document(document_id: UUID, client: Client = Depends(get_supabase_user)):
     service = DocumentsService(client)

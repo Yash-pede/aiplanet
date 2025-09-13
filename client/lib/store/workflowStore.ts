@@ -1,5 +1,6 @@
 import { createStore } from "zustand/vanilla";
 import { Workflow } from "@/common/types";
+import { Edge, Node } from "@xyflow/react";
 
 type WorkflowState = {
   workflows: Workflow[];
@@ -17,6 +18,7 @@ type WorkflowActions = {
   updateSelectedWorkflowDefinition: (
     workflow: Partial<Workflow["definition"]>
   ) => void;
+  saveFlow: (nodes: Node[], edges: Edge[]) => void;
 };
 
 export type WorkflowStore = WorkflowState & WorkflowActions;
@@ -49,7 +51,11 @@ export const createWorkflowStore = (
         workflows: state.workflows.filter((w) => w.id !== id),
       })),
 
-    selectWorkflow: (workflow) => set({ selectedWorkflow: workflow }),
+    selectWorkflow: (workflow) => {
+      if (!workflow) return set({ selectedWorkflow: null });
+
+      set({ selectedWorkflow: workflow });
+    },
 
     getWorkflow: (id) =>
       set((state) => ({
@@ -65,6 +71,23 @@ export const createWorkflowStore = (
             definition: {
               ...state.selectedWorkflow.definition,
               ...def,
+            },
+          },
+        };
+      }),
+    saveFlow: (nodes: Node[], edges: Edge[]) =>
+      set((state) => {
+        if (!state.selectedWorkflow) return { selectedWorkflow: null };
+
+        return {
+          selectedWorkflow: {
+            ...state.selectedWorkflow,
+            definition: {
+              ...state.selectedWorkflow.definition,
+              flow: {
+                nodes: [...nodes],
+                edges: [...edges],
+              },
             },
           },
         };
