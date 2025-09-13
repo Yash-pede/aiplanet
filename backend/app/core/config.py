@@ -19,3 +19,6 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+class metadata:
+    embedding_models = ["models/gemini-embedding-001"]

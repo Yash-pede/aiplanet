@@ -21,10 +21,15 @@ class WorkflowsDAO:
         )
         return response.data
 
-    def create_workflow(
-        self, name: str, description: Optional[str]
-    ) -> Dict[str, Any]:
-        data = {"name": name, "description": description}
+    def create_workflow(self, name: str, description: Optional[str]) -> Dict[str, Any]:
+        data = {
+            "name": name,
+            "description": description,
+            "definition": {
+                "temperature": 0.7,
+                "prompt": "You are a helpful PDF assistant. Use web search if the PDF lacks context",
+            },
+        }
         response = self.client.table("workflows").insert(data).execute()
         return response.data[0]
 

@@ -1,5 +1,5 @@
 import { Database } from "@/database.types";
-import { Edge, Node } from "@xyflow/react";
+import { Edge, Node, Position } from "@xyflow/react";
 
 export type CustomNode = {
   title: string;
@@ -8,6 +8,7 @@ export type CustomNode = {
   description: string;
   width: number;
   height: number;
+  handles?: { type: "source" | "target"; position: Position }[];
 };
 
 export type Workflow = {

@@ -21,6 +21,8 @@ import { useTheme } from "next-themes";
 import EmptyCanvas from "./EmptyCanvas";
 import { nodeTypes } from "@/common/nodes";
 import { useWorkflowStore } from "@/providers/workflow-store-provider";
+import BuildWorkflow from "./BuildWorkflow";
+import ChatWithWorkflow from "./ChatWithWorkflow";
 
 export default function Canvas() {
   const { theme } = useTheme();
@@ -91,24 +93,33 @@ export default function Canvas() {
             fitView
             colorMode={theme === "dark" ? "dark" : "light"}
             // minZoom={0.8}
-            maxZoom={1}
+            // maxZoom={1}
             snapToGrid={true}
             snapGrid={snapGrid}
           >
             {nodes.length === 0 && edges.length === 0 && <EmptyCanvas />}
-            <Controls />{" "}
+            <Controls />
             <MiniMap
-            // nodeStrokeColor={(n) => {
-            //   if (n.type === "input") return "#0041d0";
-            //   if (n.type === "selectorNode") return computedStyles.getPropertyValue("--background");
-            //   if (n.type === "output") return "#ff0072";
-            // }}
-            // nodeColor={(n) => {
-            //   if (n.type === "selectorNode") return bgColor;
-            //   return "#fff";
-            // }}
+              // nodeStrokeColor={(n) => {
+              //   if (n.type === "input") return "#0041d0";
+              //   if (n.type === "selectorNode") return computedStyles.getPropertyValue("--background");
+              //   if (n.type === "output") return "#ff0072";
+              // }}
+              // nodeColor={(n) => {
+              //   if (n.type === "selectorNode") return bgColor;
+              //   return "#fff";
+              // }}
+              style={{
+                top: 0,
+                height: 120,
+                borderRadius: "var(--radius)",
+              }}
             />
             <Background bgColor={"var(--background)"} />
+            <div className="absolute bottom-4 right-0 -translate-x-1/2 flex flex-col gap-4 z-10">
+              {/* <BuildWorkflow /> */}
+              {/* <ChatWithWorkflow /> */}
+            </div>
           </ReactFlow>
         </div>
       </div>

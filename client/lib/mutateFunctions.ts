@@ -23,3 +23,8 @@ export const UpdateWorkflow = async ({
   });
   return response.data;
 };
+
+export const ExecuteWorkflow = async (id: string) => {
+  const response = await api.post(`/workflows/${id}/execute`);
+  return response.data;
+};

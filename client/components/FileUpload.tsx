@@ -4,10 +4,8 @@ import React, { useEffect, useState } from "react";
 import {
   UploadIcon,
   PaperclipIcon,
-  XIcon,
   ArrowUpRightFromSquare,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { formatBytes, useFileUpload } from "@/hooks/use-file-upload";
 import { useWorkflowStore } from "@/providers/workflow-store-provider";
 import { createClient } from "@/lib/supabase/client";
@@ -21,23 +19,22 @@ import { Skeleton } from "./ui/skeleton";
 export default function FileUploadDirect() {
   const maxSize = 5 * 1024 * 1024; // 5 MB
   const supabase = createClient();
-
   const selectedWorkflow = useWorkflowStore((s) => s.selectedWorkflow);
 
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
 
   const {
     data: initialDocument,
     isLoading,
     error,
-    isSuccess,
-  } = useQuery<Database["public"]["Tables"]["documents"]["Row"]>({
+    refetch,
+  } = useQuery<Database["public"]["Tables"]["documents"]["Row"][]>({
     queryKey: ["documents", selectedWorkflow?.id],
     enabled: !!selectedWorkflow,
     queryFn: () => GetWorkflowDocument(selectedWorkflow?.id as string),
   });
+
   const [
     { files, isDragging, errors },
     {
@@ -46,7 +43,6 @@ export default function FileUploadDirect() {
       handleDragOver,
       handleDrop,
       openFileDialog,
-      removeFile,
       getInputProps,
     },
   ] = useFileUpload({
@@ -54,32 +50,31 @@ export default function FileUploadDirect() {
     accept: "application/pdf",
     multiple: false,
   });
+
   const fileWrapper = files[0];
 
   useEffect(() => {
     if (!fileWrapper?.file || !selectedWorkflow) return;
+
+    let cancelled = false;
 
     const doUpload = async () => {
       setUploading(true);
       setUploadError(null);
 
       try {
-        // 1. Get current user
         const {
           data: { user },
           error: userError,
         } = await supabase.auth.getUser();
 
-        if (userError || !user) {
-          throw new Error("User not authenticated");
-        }
+        if (userError || !user) throw new Error("User not authenticated");
 
         const file = fileWrapper.file;
         const fileName = `${Date.now()}_${file.name}`;
         const storagePath = `documents/${selectedWorkflow.id}/${fileName}`;
 
-        // 2. Upload file to Supabase Storage
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from("documents")
           .upload(storagePath, file as File, {
             contentType: file.type,
@@ -88,44 +83,48 @@ export default function FileUploadDirect() {
 
         if (uploadError) throw uploadError;
 
-        // 3. Get public URL
         const { data: urlData } = supabase.storage
           .from("documents")
           .getPublicUrl(storagePath);
 
         const fileUrl = urlData.publicUrl;
 
-        // 4. Insert metadata into documents table with proper user_id
-        const { data: metaData, error: metaError } = await supabase
+        const { error: metaError } = await supabase
           .from("documents")
           .insert({
             file_name: fileName,
             file_url: fileUrl,
             workflow_id: selectedWorkflow.id,
-            user_id: user.id, // Use authenticated user's ID
-            status: "pending", // Use "pending" to match your backend schema
-          })
-          .select()
-          .single();
+            user_id: user.id,
+            status: "pending",
+          });
 
         if (metaError) throw metaError;
 
-        setUploadedUrl(fileUrl);
-        console.log("Document uploaded successfully:", metaData);
+        if (!cancelled) {
+          await refetch(); // 🔥 refresh list after upload
+        }
       } catch (err: any) {
-        console.error("Upload failed:", err);
-        setUploadError(err.message || "Upload error");
+        if (!cancelled) {
+          console.error("Upload failed:", err);
+          setUploadError(err.message || "Upload error");
+        }
       } finally {
-        setUploading(false);
+        if (!cancelled) setUploading(false);
       }
     };
 
     doUpload();
-  }, [fileWrapper, selectedWorkflow, supabase]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fileWrapper, selectedWorkflow, supabase, refetch]);
 
   if (error) return <ErrorCard description="Error loading document" />;
   if (isLoading) return <Skeleton className="w-full min-h-28" />;
-  if (initialDocument[0]?.file_url) {
+
+  if (initialDocument?.[0]?.file_url) {
     return (
       <div className="flex items-center justify-between mt-2">
         <div className="flex items-center gap-2">
@@ -167,31 +166,11 @@ export default function FileUploadDirect() {
         <div className="text-red-500 text-sm">{errors[0]}</div>
       )}
 
-      {fileWrapper && (
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center gap-2">
-            <PaperclipIcon />
-            <span className="truncate">{fileWrapper.file.name}</span>
-          </div>
-          <Link href={uploadedUrl ?? ""} target="_blank">
-            <ArrowUpRightFromSquare />
-          </Link>
-        </div>
-      )}
-
       {uploading && <p>Uploading...</p>}
       {uploadError && (
         <div className="text-red-500 text-sm flex items-center gap-2">
           <span>{uploadError}</span>
         </div>
-      )}
-      {uploadedUrl && (
-        <p className="text-green-600">
-          Uploaded!{" "}
-          <a href={uploadedUrl} target="_blank" rel="noopener noreferrer">
-            View file
-          </a>
-        </p>
       )}
     </div>
   );

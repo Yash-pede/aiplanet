@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from supabase import Client
 from typing import List
 from uuid import UUID
@@ -9,6 +9,10 @@ from app.schemas.workflow import WorkflowCreate, WorkflowOut, WorkflowUpdate
 
 from app.services.documents_service import DocumentsService
 from app.schemas.document import DocumentOut
+
+
+import asyncio
+
 
 router = APIRouter()
 
@@ -73,7 +77,16 @@ async def delete_workflow(
 
 @router.get("/workflows/{workflow_id}/documents", response_model=List[DocumentOut])
 async def list_documents_by_workflow(
-    workflow_id: UUID, client: Client = Depends(get_supabase_user)
+    workflow_id: UUID, client: Client = Depends(get_supabase_user),
 ):
     service = DocumentsService(client)
     return service.list_documents_by_workflow(workflow_id)
+
+@router.post("/workflows/{workflow_id}/execute", response_model=dict)
+async def execute_workflow(workflow_id: UUID, client: Client = Depends(get_supabase_user)):
+    service = WorkflowsService(client)
+
+    # schedule async job on event loop
+    asyncio.create_task(service.execute_workflow(workflow_id))
+
+    return {"message": "Executing Workflow it may take a while...", "status": "pending"}

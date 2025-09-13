@@ -4,6 +4,7 @@ import InputNode from "@/app/(main)/workflow/[id]/components/nodes/InputNode";
 import LLMNode from "@/app/(main)/workflow/[id]/components/nodes/LLMNode";
 import KnowledgeBaseNode from "@/app/(main)/workflow/[id]/components/nodes/KnowledgeBaseNode";
 import OutputNode from "@/app/(main)/workflow/[id]/components/nodes/OutputNode";
+import { Position } from "@xyflow/react";
 
 export const nodes: CustomNode[] = [
   {
@@ -13,6 +14,7 @@ export const nodes: CustomNode[] = [
     description: "Entry Point for query",
     width: 400,
     height: 300,
+    handles: [{ type: "source", position: Position.Right }],
   },
   {
     title: "Knowledge Base",
@@ -21,6 +23,10 @@ export const nodes: CustomNode[] = [
     description: "Run a Query with LLM",
     width: 500,
     height: 400,
+    handles: [
+      { type: "target", position: Position.Left },
+      { type: "source", position: Position.Right },
+    ],
   },
   {
     title: "LLM",
@@ -29,6 +35,10 @@ export const nodes: CustomNode[] = [
     description: "Let LLM search info in your file",
     width: 500,
     height: 600,
+    handles: [
+      { type: "target", position: Position.Left },
+      { type: "source", position: Position.Right },
+    ],
   },
   {
     title: "Output",
@@ -37,15 +47,16 @@ export const nodes: CustomNode[] = [
     description: "Output of result nodes as text",
     width: 500,
     height: 300,
+    handles: [{ type: "target", position: Position.Left }],
   },
 ];
 
-export const DEFAULT_PROMPT ="You are a helpful PDF assistant. Use web search if the PDF lacks context"
+export const DEFAULT_PROMPT =
+  "You are a helpful PDF assistant. Use web search if the PDF lacks context";
 
-
- export const nodeTypes = {
-    input: InputNode,
-    llm: LLMNode,
-    "knowledge-base": KnowledgeBaseNode,
-    output: OutputNode,
-  };
+export const nodeTypes = {
+  input: InputNode,
+  llm: LLMNode,
+  "knowledge-base": KnowledgeBaseNode,
+  output: OutputNode,
+};

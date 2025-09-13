@@ -1,5 +1,7 @@
 /* xyflow theme files. Delete these to start from our base */
-
+.react-flow__attribution {
+  display: none;
+}
 .react-flow {
   --xy-background-color: #f7f9fb;
   /* Custom Variables */

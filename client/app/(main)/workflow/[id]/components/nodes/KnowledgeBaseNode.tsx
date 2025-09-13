@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import NodeWrapper from "./NodeWrapper";
-import { Handle, NodeProps, Position } from "@xyflow/react";
+import { NodeProps } from "@xyflow/react";
 import { CardContent } from "@/components/ui/card";
 import FileUpload from "@/components/FileUpload";
 import { useWorkflowStore } from "@/providers/workflow-store-provider";
@@ -13,20 +13,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useQuery } from "@tanstack/react-query";
+import { GetEmbeddingModels } from "@/lib/queryFunctions";
 
 const KnowledgeBaseNode = (props: NodeProps) => {
   const selectedWorkflow = useWorkflowStore((s) => s.selectedWorkflow);
   const updateSelectedWorkflowDefinition = useWorkflowStore(
     (s) => s.updateSelectedWorkflowDefinition
   );
+  const { data: embeddingModels, isLoading } = useQuery({
+    queryKey: ["GetEmbeddingModels"],
+    queryFn: GetEmbeddingModels,
+  });
   return (
     <NodeWrapper data={props}>
-      <Handle type="target" position={Position.Left} />
       <CardContent>
         <div className="grid w-full items-center gap-5">
           <FileUpload />
           <Label htmlFor="model">Embedding Model</Label>
           <Select
+            disabled={isLoading}
             defaultValue={selectedWorkflow.definition?.embeddingModel}
             value={selectedWorkflow.definition?.embeddingModel}
             onValueChange={(value) =>
@@ -37,14 +43,15 @@ const KnowledgeBaseNode = (props: NodeProps) => {
               <SelectValue placeholder="Select a embedding model" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="text-embedding-3-large">
-                text-embedding-3-large
-              </SelectItem>
+              {embeddingModels?.map((model: string) => (
+                <SelectItem key={model} value={model}>
+                  {model}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
       </CardContent>
-      <Handle type="source" position={Position.Right} />
     </NodeWrapper>
   );
 };

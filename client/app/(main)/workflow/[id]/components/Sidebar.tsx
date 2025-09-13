@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useDraggable } from "@neodrag/react";
@@ -19,10 +18,8 @@ import {
 } from "@/components/ui/sidebar";
 
 import { nodes } from "@/common/nodes";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { UpdateWorkflow } from "@/lib/mutateFunctions";
 import { useWorkflowStore } from "@/providers/workflow-store-provider";
-import { Loader2 } from "lucide-react";
+import SaveWorkflow from "./SaveWorkflow";
 
 const getId = () => `node_${Date.now()}`;
 
@@ -91,15 +88,7 @@ export function CanvasSidebar() {
   const updateSelectedWorkflow = useWorkflowStore(
     (s) => s.updateSelectedWorkflow
   );
-  const queryClient = useQueryClient();
-  const { mutate: updateWorkflow, isPending } = useMutation({
-    mutationFn: UpdateWorkflow,
-    onSuccess() {
-      queryClient.invalidateQueries({
-        queryKey: ["workflow", selectedWorkflow.id],
-      });
-    },
-  });
+
 
   const handleNodeDrop = useCallback(
     (
@@ -139,9 +128,7 @@ export function CanvasSidebar() {
   return (
     <Sidebar variant="floating" className="relative h-[calc(100vh-4rem)]">
       <SidebarHeader>
-        <Button disabled={isPending} onClick={() => updateWorkflow(selectedWorkflow)}>
-          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save
-        </Button>
+       <SaveWorkflow />
         <Input
           type="text"
           placeholder="Workflow name"
@@ -152,7 +139,6 @@ export function CanvasSidebar() {
               updateSelectedWorkflow({ name: e.target.value });
             }
           }}
-          disabled={isPending}
           onChange={(e) => {
             if (selectedWorkflow?.name !== e.target.value) {
               updateSelectedWorkflow({ name: e.target.value });

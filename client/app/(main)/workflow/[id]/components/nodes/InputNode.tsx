@@ -2,7 +2,7 @@
 
 import React from "react";
 import NodeWrapper from "./NodeWrapper";
-import { Handle, NodeProps, Position } from "@xyflow/react";
+import { NodeProps } from "@xyflow/react";
 import { CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +29,6 @@ const InputNode = (props: NodeProps) => {
           />
         </div>
       </CardContent>
-      <Handle type="source" id="input" position={Position.Right} />
     </NodeWrapper>
   );
 };
