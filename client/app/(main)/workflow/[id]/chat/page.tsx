@@ -1,9 +1,9 @@
 import React, { use } from "react";
 
 const ChatWithWorkflow = ({ params }: { params: Promise<{ id: string }> }) => {
-  const { id } = use(params);
+  const { id: workflowId } = use(params);
 
-  return <div>id:{id}</div>;
+  return <div>id:{workflowId}</div>;
 };
 
 export default ChatWithWorkflow;

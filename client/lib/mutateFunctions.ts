@@ -29,3 +29,10 @@ export const ExecuteWorkflow = async (id: string) => {
   const response = await api.post(`/workflows/${id}/execute`);
   return response.data;
 };
+
+export const CreateSession = async (workflowId: string) => {
+  const response = await api.post(`/sessions`, {
+    workflow_id: workflowId,
+  });
+  return response.data;
+};

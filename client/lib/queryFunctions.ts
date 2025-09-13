@@ -20,9 +20,4 @@ export const GetEmbeddingModels = async () => {
   return response.data;
 };
 
-export const CreateSession = async (workflowId: string) => {
-  const response = await api.post(`/sessions`, {
-    workflow_id: workflowId,
-  });
-  return response.data;
-};
+
