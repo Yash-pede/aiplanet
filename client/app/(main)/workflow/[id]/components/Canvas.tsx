@@ -108,8 +108,8 @@ export default function Canvas() {
             />
             <Background bgColor={"var(--background)"} />
             <div className="absolute bottom-4 right-0 -translate-x-1/2 flex flex-col gap-4 z-10">
-              {/* <BuildWorkflow /> */}
-              {/* <ChatWithWorkflow /> */}
+              <BuildWorkflow />
+              <ChatWithWorkflow />
             </div>
           </ReactFlow>
         </div>
