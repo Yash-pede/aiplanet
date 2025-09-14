@@ -22,7 +22,6 @@
 
 [![Vercel Lite Demo](https://img.youtube.com/vi/wX3cviPwYrM/0.jpg)](https://www.youtube.com/watch?v=wX3cviPwYrM)
 
-FUll Long explanation here [watch it on YouTube](https://www.youtube.com/watch?v=WN91JBAxFZ0).
 
 ---
 
