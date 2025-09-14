@@ -9,7 +9,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { usePathname } from "next/navigation";
 import Link from "next/link";
 import UserButton from "./UserButton";
 import ThemeSwitcher from "../ThemeSwitcher";
@@ -19,10 +18,11 @@ export default function Navbar() {
     <header className="border-b px-4 md:px-6">
       <div className="flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <Link href="/" className="">
+          <Link href="/" className="flex items-center gap-2">
             <FerrisWheel />
+          <h4 className="font-semibold text-lg">AI.Planet</h4>
           </Link>
-          <Breadcrumb className="max-md:hidden">
+          <Breadcrumb className="max-md:hidden" hidden>
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink href="/">Home</BreadcrumbLink>

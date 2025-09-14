@@ -79,7 +79,7 @@ const LLMNode = (props: NodeProps) => {
             max={1}
             min={0}
             step={0.1}
-            defaultValue={0.5}
+            // defaultValue={0.5}
             value={selectedWorkflow.definition?.temperature ?? 0.5}
             onChange={(e) =>
               updateSelectedWorkflowDefinition({
