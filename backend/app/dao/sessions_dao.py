@@ -7,18 +7,30 @@ class SessionsDAO:
     def __init__(self, client: Client):
         self.client = client
 
-    def create_session(self, workflow_id: UUID) -> Dict[str, Any]:
+    def create_session(self, workflow_id: UUID, name: str) -> Dict[str, Any]:
         """Create a new chat session."""
-        data = {"workflow_id": str(workflow_id)}
+        data = {"workflow_id": str(workflow_id), "name": name}
         response = self.client.table("chat_sessions").insert(data).execute()
         return response.data[0]
 
     def list_sessions_by_workflow(self, workflow_id: UUID) -> List[Dict[str, Any]]:
         """List all sessions for a specific workflow."""
-        response = self.client.table("chat_sessions").select("*").eq("workflow_id", str(workflow_id)).order("created_at", desc=True).execute()
+        response = (
+            self.client.table("chat_sessions")
+            .select("*")
+            .eq("workflow_id", str(workflow_id))
+            .order("created_at", desc=True)
+            .execute()
+        )
         return response.data
 
     def get_session(self, session_id: UUID) -> Dict[str, Any]:
         """Get a specific session by ID."""
-        response = self.client.table("chat_sessions").select("*").eq("id", str(session_id)).single().execute()
+        response = (
+            self.client.table("chat_sessions")
+            .select("*")
+            .eq("id", str(session_id))
+            .single()
+            .execute()
+        )
         return response.data

@@ -2,6 +2,7 @@
 
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -18,6 +19,7 @@ import { useEffect } from "react";
 import { Workflow } from "@/common/types";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { Badge } from "@/components/ui/badge";
 dayjs.extend(relativeTime);
 const Page = () => {
   const workflows = useWorkflowStore((s) => s.workflows);
@@ -31,7 +33,7 @@ const Page = () => {
     queryKey: ["workflows"],
     queryFn: GetWorkflows,
   });
-  
+
   useEffect(() => {
     selectWorkflow(null);
   }, [selectWorkflow]);
@@ -74,6 +76,21 @@ const Page = () => {
                 <CardHeader>
                   <CardTitle>{workflow.name}</CardTitle>
                   <CardDescription>{workflow.description}</CardDescription>
+                  <CardAction>
+                    <Badge
+                      variant={
+                        workflow.status === "pending"
+                          ? "outline"
+                          : workflow.status === "completed"
+                          ? "default"
+                          : workflow.status === "in_progress"
+                          ? "secondary"
+                          : "destructive"
+                      }
+                    >
+                      {workflow.status}
+                    </Badge>
+                  </CardAction>
                 </CardHeader>
                 <CardContent>
                   <p>{dayjs(workflow.updated_at).fromNow()}</p>

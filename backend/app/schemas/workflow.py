@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 from uuid import UUID
 
@@ -71,7 +71,30 @@ class WorkflowOut(BaseModel):
 
 
 class WorkflowUpdate(BaseModel):
-    name: str
+    name: Optional[str] = None
     description: Optional[str] = None
     definition: Optional[Definition] = None
     status: Optional[str] = None
+
+
+class WorkflowResolved(BaseModel):
+    # Core
+    id: UUID
+    user_id: Optional[UUID] = None
+    name: str
+    description: str = ""
+    status: str = "active"
+    created_at: str
+    updated_at: str = ""
+
+    # Definition (flattened, concise; use Any where not critical)
+    document_url: str = ""
+    embedding_model: Any = "text-embedding-004"
+    llm_model: Any = "gemini-1.5-flash"
+    prompt: str = "You are a helpful assistant. Use provided context when possible."
+    temperature: float = 0.2
+    query: str = ""
+
+    # Flow (store as raw lists of dict[Any, Any] to keep it short)
+    nodes: List[dict[str, Any]] = Field(default_factory=list)
+    edges: List[dict[str, Any]] = Field(default_factory=list)

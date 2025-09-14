@@ -7,8 +7,8 @@ import os
 import requests
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from app.clients.chroma_client import get_chroma
 from app.core.config import metadata
+from .chroma_service import split_documents, add_to_chroma
 
 TEMP_DIR = "tmp_docs"
 
@@ -70,21 +70,17 @@ class DocumentsService:
         loader = PyPDFLoader(file_path)
         documents = loader.load()
 
-        splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=80)
-        chunks = splitter.split_documents(documents)
-
+        chunks = split_documents(documents)
+        add_to_chroma(chunks)
         for i, chunk in enumerate(chunks):
             chunk.metadata["document_id"] = str(document_id)
             chunk.metadata["chunk_index"] = i
 
-        if not embedding_model:
-            embedding_model = metadata.embedding_models[0]
-        db = get_chroma(embedding_model=embedding_model)
-        ids = [f"{document_id}:{i}" for i in range(len(chunks))]
-        db.add_documents(chunks, ids=ids)
-        db.persist()
-        self.update_document_status(document_id, "processed")
+        # if not embedding_model:
+        #     embedding_model = metadata.embedding_models[0]
 
+        self.update_document_status(document_id, "processed")
+        print(f"Document {document_id} processed with {len(chunks)} chunks.")
         os.remove(file_path)
 
         return {"document_id": document_id, "chunks_added": len(chunks)}

@@ -11,9 +11,10 @@ import { useWorkflowStore } from "@/providers/workflow-store-provider";
 import _ from "lodash";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { GetWorkflowById } from "@/lib/queryFunctions";
+import { GetWorkflowById, GetWorkflowDocument } from "@/lib/queryFunctions";
 import { Workflow } from "@/common/types";
 import { ExecuteWorkflow } from "@/lib/mutateFunctions";
+import { Database } from "@/database.types";
 
 const BuildWorkflow = () => {
   const selectedWorkflow = useWorkflowStore((s) => s.selectedWorkflow);
@@ -22,6 +23,7 @@ const BuildWorkflow = () => {
     data: workflow,
     isLoading,
     error,
+    refetch,
   } = useQuery<Workflow, Error>({
     queryKey: ["workflow", selectedWorkflow?.id],
     queryFn: () => GetWorkflowById(selectedWorkflow?.id),
@@ -36,13 +38,24 @@ const BuildWorkflow = () => {
     },
   });
 
+  const { data: Document, isLoading: isLoadingDocument } = useQuery<
+    Database["public"]["Tables"]["documents"]["Row"][]
+  >({
+    queryKey: ["documents", selectedWorkflow?.id],
+    enabled: !!selectedWorkflow,
+    queryFn: () => GetWorkflowDocument(selectedWorkflow?.id as string),
+  });
+
   const validateWorkflow = () => {
     if (!workflow || !selectedWorkflow) return;
-
+    if (workflow.status === "completed" || workflow.status === "in_progress")
+      return toast.error(`Workflow is already ${workflow.status}`, {
+        description: `you cannot build a workflow that is ${workflow.status}`,
+      });
     const nodes = selectedWorkflow.definition?.flow?.nodes || [];
     const edges = selectedWorkflow.definition?.flow?.edges || [];
 
-    const inputNode = nodes.find((n) => n.type === "input");
+    const inputNode = nodes.find((n) => n.type === "query");
     const knowledgeBaseNode = nodes.find((n) => n.type === "knowledge-base");
     const llmNode = nodes.find((n) => n.type === "llm");
     const outputNode = nodes.find((n) => n.type === "output");
@@ -64,7 +77,6 @@ const BuildWorkflow = () => {
     const hasLLMToOutput = edges.some(
       (e) => e.source === llmNode.id && e.target === outputNode.id
     );
-    console.log(hasInputToKB, hasKBToLLM, hasLLMToOutput);
     if (!hasInputToKB || !hasKBToLLM || !hasLLMToOutput) {
       toast.error("Invalid connections", {
         description:
@@ -72,7 +84,12 @@ const BuildWorkflow = () => {
       });
       return false;
     }
-
+    if (Document?.length === 0) {
+      toast.error("No document uploaded", {
+        description: "Please upload a document in the Knowledge Base node.",
+      });
+      return false;
+    }
     if (
       !selectedWorkflow.definition?.query ||
       !selectedWorkflow.definition?.prompt
@@ -89,6 +106,12 @@ const BuildWorkflow = () => {
       });
       return false;
     }
+    if (!selectedWorkflow.definition.llmModel) {
+      toast.error("Missing fields", {
+        description: "LLM model must be selected in LLM node.",
+      });
+      return false;
+    }
     const isSaved =
       _.isEqual(selectedWorkflow.definition, workflow.definition) &&
       selectedWorkflow.name === workflow.name &&
@@ -100,8 +123,9 @@ const BuildWorkflow = () => {
       });
       return false;
     }
-
-    executeWorkflow(selectedWorkflow.id);
+    refetch();
+    if (workflow.status !== "pending") executeWorkflow(selectedWorkflow.id);
+    toast.success("Workflow build started");
     return true;
   };
 
@@ -120,7 +144,11 @@ const BuildWorkflow = () => {
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        <p>Build Workflow</p>
+        {workflow.status === "in_progress"
+          ? "Workflow build in progress"
+          : workflow.status === "completed"
+          ? "Workflow build completed"
+          : "Build Workflow"}
       </TooltipContent>
     </Tooltip>
   );

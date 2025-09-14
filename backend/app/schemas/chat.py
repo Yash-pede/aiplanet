@@ -6,10 +6,14 @@ from datetime import datetime
 
 class ChatSessionCreate(BaseModel):
     workflow_id: UUID
+    name: str
 
-
+class chatMessageCreateMetadata(BaseModel):
+    workflow_id: UUID
+    is_first: Optional[bool] = None
 class ChatMessageCreate(BaseModel):
     message: str
+    metadata: Optional[chatMessageCreateMetadata]
 
 
 class ChatMessageOut(BaseModel):

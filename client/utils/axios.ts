@@ -1,5 +1,5 @@
+import { createClient } from "@/lib/supabase/client";
 import axios from "axios";
-import { createClient } from "./supabase/client";
 import type { AxiosInstance } from "axios";
 
 const api: AxiosInstance = axios.create({

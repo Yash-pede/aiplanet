@@ -14,12 +14,22 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DEFAULT_PROMPT } from "@/common/nodes";
 import { Input } from "@/components/ui/input";
+import { GetLLMModels } from "@/lib/queryFunctions";
+import { useQuery } from "@tanstack/react-query";
 
 const LLMNode = (props: NodeProps) => {
   const selectedWorkflow = useWorkflowStore((s) => s.selectedWorkflow);
   const updateSelectedWorkflowDefinition = useWorkflowStore(
     (s) => s.updateSelectedWorkflowDefinition
   );
+  const {
+    data: llmModels,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["GetLLMModels"],
+    queryFn: GetLLMModels,
+  });
 
   return (
     <NodeWrapper data={props}>
@@ -32,12 +42,17 @@ const LLMNode = (props: NodeProps) => {
             onValueChange={(value) =>
               updateSelectedWorkflowDefinition({ llmModel: value })
             }
+            disabled={isLoading || isError}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a LLM Model" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="o4">o4</SelectItem>
+              {llmModels?.map((model: string) => (
+                <SelectItem key={model} value={model}>
+                  {model}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Label htmlFor="sys-prompt">System Prompt</Label>

@@ -86,7 +86,6 @@ async def list_documents_by_workflow(
 async def execute_workflow(workflow_id: UUID, client: Client = Depends(get_supabase_user)):
     service = WorkflowsService(client)
 
-    # schedule async job on event loop
     asyncio.create_task(service.execute_workflow(workflow_id))
 
     return {"message": "Executing Workflow it may take a while...", "status": "pending"}

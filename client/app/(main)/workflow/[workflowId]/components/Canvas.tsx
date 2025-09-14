@@ -35,8 +35,19 @@ export default function Canvas() {
   );
   useEffect(() => {
     if (selectedWorkflow?.definition?.flow) {
+      const styledEdges = (selectedWorkflow.definition.flow.edges || []).map(
+        (edge) => ({
+          ...edge,
+          animated: true,
+          style: {
+            stroke: "var(--ring)",
+            strokeWidth: 2,
+            strokeDasharray: "5 5",
+          },
+        })
+      );
       setNodes(selectedWorkflow.definition.flow.nodes || []);
-      setEdges(selectedWorkflow.definition.flow.edges || []);
+      setEdges(styledEdges);
     }
   }, [selectedWorkflow?.id, setNodes, setEdges]);
 
@@ -69,7 +80,18 @@ export default function Canvas() {
   const onConnect = useCallback(
     (params: Connection) => {
       setEdges((eds) => {
-        const newEdges = addEdge(params, eds);
+        const newEdges = addEdge(
+          {
+            ...params,
+            animated: true,
+            style: {
+              stroke: "var(--ring)",
+              strokeWidth: 2,
+              strokeDasharray: "5 5",
+            },
+          },
+          eds
+        );
         saveFlowDebounced(nodes, newEdges);
         return newEdges;
       });
@@ -80,7 +102,7 @@ export default function Canvas() {
   const snapGrid: SnapGrid = [20, 20];
   return (
     <ReactFlowProvider>
-      <div className="flex grow  h-full w-full">
+      <div className="flex grow h-full w-full">
         <CanvasSidebar />
         <div className="grow h-full">
           <ReactFlow

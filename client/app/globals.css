@@ -186,5 +186,16 @@
   body {
     @apply bg-background text-foreground;
     letter-spacing: var(--tracking-normal);
+    scrollbar-width: thin;
+    scrollbar-color: #888 #f1f1f1;
   }
+}
+
+/* Hide scrollbar cross-browser; scrolling still works */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE 10+ and old Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Opera, Edge Chromium */
 }

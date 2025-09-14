@@ -1,13 +1,14 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 import { useDraggable } from "@neodrag/react";
 import { Node, useReactFlow, XYPosition } from "@xyflow/react";
 import { RefObject, useCallback, useRef, useState } from "react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -20,6 +21,12 @@ import {
 import { nodes } from "@/common/nodes";
 import { useWorkflowStore } from "@/providers/workflow-store-provider";
 import SaveWorkflow from "./SaveWorkflow";
+import { useQuery } from "@tanstack/react-query";
+import { Workflow } from "@/common/types";
+import { GetWorkflowById } from "@/lib/queryFunctions";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Loader2, RotateCcw } from "lucide-react";
 
 const getId = () => `node_${Date.now()}`;
 
@@ -88,8 +95,17 @@ export function CanvasSidebar() {
   const updateSelectedWorkflow = useWorkflowStore(
     (s) => s.updateSelectedWorkflow
   );
-
-
+  const {
+    data: workflow,
+    isLoading,
+    isRefetching,
+    error,
+    refetch,
+  } = useQuery<Workflow, Error>({
+    queryKey: ["workflow", selectedWorkflow?.id],
+    queryFn: () => GetWorkflowById(selectedWorkflow.id as string),
+    refetchOnMount: true,
+  });
   const handleNodeDrop = useCallback(
     (
       nodeType: string,
@@ -128,7 +144,7 @@ export function CanvasSidebar() {
   return (
     <Sidebar variant="floating" className="relative h-[calc(100vh-4rem)]">
       <SidebarHeader>
-       <SaveWorkflow />
+        <SaveWorkflow />
         <Input
           type="text"
           placeholder="Workflow name"
@@ -174,6 +190,29 @@ export function CanvasSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="flex flex-row items-center gap-2 justify-around">
+        <p> Status: </p>{" "}
+        <Badge
+          variant={
+            workflow.status === "pending"
+              ? "outline"
+              : workflow.status === "completed"
+              ? "default"
+              : workflow.status === "in_progress"
+              ? "secondary"
+              : "destructive"
+          }
+        >
+          {workflow.status}
+        </Badge>
+        <Button size="icon" onClick={() => refetch()} disabled={isLoading}>
+          {isLoading || isRefetching ? (
+            <Loader2 className="animate-spin" />
+          ) : (
+            <RotateCcw />
+          )}
+        </Button>
+      </SidebarFooter>
     </Sidebar>
   );
 }

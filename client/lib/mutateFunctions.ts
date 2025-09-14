@@ -1,6 +1,6 @@
 import { Database } from "@/database.types";
-import api from "./axios";
 import { Workflow } from "@/common/types";
+import api from "@/utils/axios";
 
 export const PostWorkflows = async ({
   name,

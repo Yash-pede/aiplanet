@@ -25,6 +25,7 @@ export type Workflow = {
       edges: Edge[];
     };
   };
+  status: "pending" | "completed" | "in_progress" | "failed";
   description: string | null;
   id: string;
   name: string;

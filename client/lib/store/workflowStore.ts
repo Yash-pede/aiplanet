@@ -1,6 +1,7 @@
 import { createStore } from "zustand/vanilla";
 import { Workflow } from "@/common/types";
 import { Edge, Node } from "@xyflow/react";
+import { sanitizeFlow } from "@/utils/sanitizeFlow";
 
 type WorkflowState = {
   workflows: Workflow[];
@@ -79,14 +80,19 @@ export const createWorkflowStore = (
       set((state) => {
         if (!state.selectedWorkflow) return { selectedWorkflow: null };
 
+        const { nodes: safeNodes, edges: safeEdges } = sanitizeFlow(
+          nodes,
+          edges
+        );
+
         return {
           selectedWorkflow: {
             ...state.selectedWorkflow,
             definition: {
               ...state.selectedWorkflow.definition,
               flow: {
-                nodes: [...nodes],
-                edges: [...edges],
+                nodes: safeNodes,
+                edges: safeEdges,
               },
             },
           },

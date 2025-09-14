@@ -13,7 +13,7 @@ class WorkflowsDAO:
         response = self.client.table("workflows").select("*").execute()
         return response.data
 
-    def get_workflow(self, workflow_id: UUID) -> Optional[Dict[str, Any]]:
+    def get_workflow(self, workflow_id: UUID):
         response = (
             self.client.table("workflows")
             .select("*")
@@ -41,6 +41,7 @@ class WorkflowsDAO:
         name: Optional[str] = None,
         description: Optional[str] = None,
         definition: Optional[Definition] = None,
+        status: Optional[str] = None,
     ) -> Dict[str, Any]:
         data = {}
         if name is not None:
@@ -49,15 +50,17 @@ class WorkflowsDAO:
             data["description"] = description
         if isinstance(definition, BaseModel):
             data["definition"] = definition.model_dump()
+        if status is not None:
+            data["status"] = status
 
-        print(f"\n\n\nUpdating workflow {workflow_id} with data: {data}")
+        # print(f"\n\n\nUpdating workflow {workflow_id} with data: {data}")
         response = (
             self.client.table("workflows")
             .update(data)
             .eq("id", str(workflow_id))
             .execute()
         )  
-        print(f"Update response: {response}")
+        # print(f"Update response: {response}")
         return response.data[0]
 
     def delete_workflow(self, workflow_id: UUID) -> bool:

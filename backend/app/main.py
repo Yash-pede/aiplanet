@@ -47,9 +47,9 @@ async def add_request_id_and_handle_exceptions(request: Request, call_next):
 app.include_router(health.router, prefix=settings.API_PREFIX, tags=["health"])
 app.include_router(workflows.router, prefix=settings.API_PREFIX, tags=["workflows"])
 app.include_router(documents.router, prefix=settings.API_PREFIX, tags=["documents"])
+app.include_router(metadata.router, prefix=settings.API_PREFIX, tags=["metadata"])
 app.include_router(sessions.router, prefix=settings.API_PREFIX, tags=["sessions"])
 app.include_router(messages.router, prefix=settings.API_PREFIX, tags=["messages"])
-app.include_router(metadata.router, prefix=settings.API_PREFIX, tags=["metadata"])
 
 
 @app.get("/")
