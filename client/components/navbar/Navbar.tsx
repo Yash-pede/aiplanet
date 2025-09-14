@@ -15,7 +15,6 @@ import UserButton from "./UserButton";
 import ThemeSwitcher from "../ThemeSwitcher";
 
 export default function Navbar() {
-  const pathname = usePathname();
   return (
     <header className="border-b px-4 md:px-6">
       <div className="flex h-16 items-center justify-between gap-4">
