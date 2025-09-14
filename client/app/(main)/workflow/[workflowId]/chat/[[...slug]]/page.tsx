@@ -37,7 +37,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Database } from "@/database.types";
 import { createClient } from "@/lib/supabase/client";
 import { GetAllMessagesBySessionId } from "@/lib/queryFunctions";
-import { SendMessage } from "@/lib/mutateFunctions"
+import { SendMessage } from "@/lib/mutateFunctions";
 type ChatMessage = {
   id: string;
   session_id: string;
@@ -56,7 +56,7 @@ export default function ChatPage({
   const queryClient = useQueryClient();
   const [prompt, setPrompt] = useState("");
   const { workflowId, slug } = use(params);
-  
+
   const sessionId = slug?.[0];
   const isValidSession = !!(sessionId && isUuid(sessionId));
   console.log(isValidSession);
@@ -70,7 +70,6 @@ export default function ChatPage({
     enabled: isValidSession,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
-    
   });
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => SendMessage(sessionId, message),
@@ -102,14 +101,14 @@ export default function ChatPage({
         },
         (payload) => {
           console.log("New message received:", payload.new);
-          
+
           queryClient.setQueryData<ChatMessage[]>(
             ["chat_messages", sessionId],
             (oldData = []) => {
               const newMessage = payload.new as ChatMessage;
-              const exists = oldData.some(msg => msg.id === newMessage.id);
+              const exists = oldData.some((msg) => msg.id === newMessage.id);
               if (exists) return oldData;
-              
+
               return [...oldData, newMessage];
             }
           );
@@ -136,7 +135,13 @@ export default function ChatPage({
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <p className="text-red-500 mb-2">Failed to load messages</p>
-            <Button onClick={() => queryClient.invalidateQueries({ queryKey: ["chat_messages", sessionId] })}>
+            <Button
+              onClick={() =>
+                queryClient.invalidateQueries({
+                  queryKey: ["chat_messages", sessionId],
+                })
+              }
+            >
               Retry
             </Button>
           </div>
@@ -152,7 +157,8 @@ export default function ChatPage({
           {isValidSession ? (
             chatMessages.length > 0 ? (
               chatMessages.map((message, index) => {
-                const isAssistant = message.role === "assistant" || message.role === "system";
+                const isAssistant =
+                  message.role === "assistant" || message.role === "system";
                 const isLastMessage = index === chatMessages.length - 1;
 
                 return (
@@ -166,6 +172,7 @@ export default function ChatPage({
                     {isAssistant ? (
                       <div className="group flex w-full flex-col gap-0">
                         <MessageContent
+                          markdown
                           className="text-foreground prose w-full flex-1 rounded-lg bg-transparent p-0"
                         >
                           {message.message}
@@ -181,7 +188,9 @@ export default function ChatPage({
                               variant="ghost"
                               size="icon"
                               className="rounded-full"
-                              onClick={() => navigator.clipboard.writeText(message.message)}
+                              onClick={() =>
+                                navigator.clipboard.writeText(message.message)
+                              }
                             >
                               <Copy />
                             </Button>
@@ -208,7 +217,10 @@ export default function ChatPage({
                       </div>
                     ) : (
                       <div className="group flex flex-col items-end gap-1">
-                        <MessageContent className="bg-muted max-w-[85%] rounded-3xl px-5 py-2.5 sm:max-w-[75%]">
+                        <MessageContent
+                          className="bg-muted max-w-[85%] rounded-3xl px-5 py-2.5 sm:max-w-[75%]"
+                          markdown
+                        >
                           {message.message}
                         </MessageContent>
                         <MessageActions
@@ -239,7 +251,9 @@ export default function ChatPage({
                               variant="ghost"
                               size="icon"
                               className="rounded-full"
-                              onClick={() => navigator.clipboard.writeText(message.message)}
+                              onClick={() =>
+                                navigator.clipboard.writeText(message.message)
+                              }
                             >
                               <Copy />
                             </Button>
@@ -266,7 +280,9 @@ export default function ChatPage({
             <Message className="mx-auto flex w-full max-w-3xl flex-col gap-2 px-0 md:px-6 items-start">
               <div className="flex items-center gap-2 p-4 bg-muted/50 rounded-lg">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm text-muted-foreground">Thinking...</span>
+                <span className="text-sm text-muted-foreground">
+                  Thinking...
+                </span>
               </div>
             </Message>
           )}
