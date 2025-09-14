@@ -27,4 +27,13 @@ export const GetLLMModels = async () => {
   return response.data;
 };
 
+export const ListSessionsByWorkflowId = async (workflowId: string) => {
+  console.log("LIST SESSIONS BY WORKFLOW ID: ", workflowId);
+  const response = await api.get(`/workflows/${workflowId}/sessions`);
+  return response.data;
+};
 
+export const GetAllMessagesBySessionId = async (sessionId: string) => {
+  const response = await api.get(`/sessions/${sessionId}/messages`);
+  return response.data;
+};

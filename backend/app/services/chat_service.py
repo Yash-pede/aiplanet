@@ -9,6 +9,7 @@ from .chroma_service import query_rag
 from app.core.config import metadata
 from app.schemas.workflow import WorkflowOut
 
+
 class ChatService:
     def __init__(self, client: Client):
         self.sessions_dao = SessionsDAO(client)
@@ -16,7 +17,7 @@ class ChatService:
         self.workflows__dao = WorkflowsDAO(client)
 
     def create_session(self, payload: ChatSessionCreate) -> Any:
-        session = self.sessions_dao.create_session(payload.workflow_id,payload.name)
+        session = self.sessions_dao.create_session(payload.workflow_id, payload.name)
         return session
 
     def list_sessions_by_workflow(self, workflow_id: UUID) -> list:
@@ -26,7 +27,7 @@ class ChatService:
         self, session_id: UUID, payload: ChatMessageCreate
     ) -> ChatMessageOut:
         message = self.messages_dao.insert_message(
-            session_id=session_id, sender="user", message=payload.message
+            session_id=session_id, role="user", message=payload.message
         )
         return ChatMessageOut(**message)
 
@@ -61,7 +62,7 @@ class ChatService:
         self, session_id: UUID, metadata: Dict[str, Any] = None
     ) -> ChatMessageOut:
         message_data = self.messages_dao.insert_message(
-            session_id=session_id, sender="llm", metadata=metadata
+            session_id=session_id, role="assistant", metadata=metadata
         )
         return ChatMessageOut(**message_data)
 
@@ -103,7 +104,9 @@ class ChatService:
         )
 
         # 3. Store and return assistant message
-        return self.append_assistant_message(message=assistant_response, message_id=message_data.id)
+        return self.append_assistant_message(
+            message=assistant_response, message_id=message_data.id
+        )
 
     def list_messages(self, session_id: UUID) -> list:
         """List all messages in a session."""

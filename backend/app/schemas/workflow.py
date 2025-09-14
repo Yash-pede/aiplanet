@@ -92,7 +92,7 @@ class WorkflowResolved(BaseModel):
     embedding_model: Any = "text-embedding-004"
     llm_model: Any = "gemini-1.5-flash"
     prompt: str = "You are a helpful assistant. Use provided context when possible."
-    temperature: float = 0.2
+    temperature: float = 0.7
     query: str = ""
 
     # Flow (store as raw lists of dict[Any, Any] to keep it short)

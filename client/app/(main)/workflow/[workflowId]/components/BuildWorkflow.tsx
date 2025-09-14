@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -15,10 +15,11 @@ import { GetWorkflowById, GetWorkflowDocument } from "@/lib/queryFunctions";
 import { Workflow } from "@/common/types";
 import { ExecuteWorkflow } from "@/lib/mutateFunctions";
 import { Database } from "@/database.types";
+import { useRouter } from "next/navigation";
 
 const BuildWorkflow = () => {
   const selectedWorkflow = useWorkflowStore((s) => s.selectedWorkflow);
-
+  const router = useRouter();
   const {
     data: workflow,
     isLoading,
@@ -124,11 +125,17 @@ const BuildWorkflow = () => {
       return false;
     }
     refetch();
-    if (workflow.status !== "pending") executeWorkflow(selectedWorkflow.id);
-    toast.success("Workflow build started");
+    if (workflow.status === "pending" || workflow.status === "failed") {
+      executeWorkflow(selectedWorkflow.id);
+      toast.success("Workflow build started");
+    }
     return true;
   };
-
+  useEffect(() => {
+    if (workflow) {
+      // router.push(`/workflow/${workflow.id}/chat`);
+    }
+  }, [workflow]);
   if (isLoading || !workflow) return null;
   if (error) return null;
 
@@ -139,6 +146,7 @@ const BuildWorkflow = () => {
           variant="default"
           className="rounded-full w-12 h-12 p-0"
           onClick={validateWorkflow}
+          disabled={workflow.status === "completed"}
         >
           <Play className="h-4 w-4" />
         </Button>

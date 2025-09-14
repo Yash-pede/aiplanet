@@ -20,18 +20,20 @@ class MessagesDAO:
     def insert_message(
         self,
         session_id: UUID,
-        sender: str,
+        role: str,
         message: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
 
         data = {
             "session_id": str(session_id),
-            "sender": sender,
+            "role": role,
             "metadata": metadata,
         }
-        if message:
+        if message not in ["", None]:
             data["message"] = message
+
+            print(f"\n\n\n\n\\n\n\n\ inserting to message {data}")
         response = self.client.table("chat_messages").insert(data).execute()
         return response.data[0]
 

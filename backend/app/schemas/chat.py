@@ -13,14 +13,14 @@ class chatMessageCreateMetadata(BaseModel):
     is_first: Optional[bool] = None
 class ChatMessageCreate(BaseModel):
     message: str
-    metadata: Optional[chatMessageCreateMetadata]
+    metadata: Optional[chatMessageCreateMetadata] = None
 
 
 class ChatMessageOut(BaseModel):
     id: UUID
     session_id: UUID
-    sender: str
-    message: str
+    role: str
+    message: Optional[str]
     metadata: Optional[Dict[str, Any]] = None
     created_at: datetime
 

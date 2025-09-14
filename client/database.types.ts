@@ -20,7 +20,7 @@ export type Database = {
           id: string
           message: string
           metadata: Json | null
-          sender: string
+          role: string
           session_id: string | null
         }
         Insert: {
@@ -28,7 +28,7 @@ export type Database = {
           id?: string
           message: string
           metadata?: Json | null
-          sender: string
+          role: string
           session_id?: string | null
         }
         Update: {
@@ -36,7 +36,7 @@ export type Database = {
           id?: string
           message?: string
           metadata?: Json | null
-          sender?: string
+          role?: string
           session_id?: string | null
         }
         Relationships: [
@@ -53,6 +53,8 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          metadata: Json | null
+          title: string | null
           updated_at: string | null
           user_id: string | null
           workflow_id: string | null
@@ -60,6 +62,8 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          metadata?: Json | null
+          title?: string | null
           updated_at?: string | null
           user_id?: string | null
           workflow_id?: string | null
@@ -67,6 +71,8 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          metadata?: Json | null
+          title?: string | null
           updated_at?: string | null
           user_id?: string | null
           workflow_id?: string | null
@@ -117,7 +123,7 @@ export type Database = {
           {
             foreignKeyName: "document_chunks_workflow_id_fkey"
             columns: ["workflow_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "workflows"
             referencedColumns: ["id"]
           },
@@ -168,8 +174,9 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          status: string | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string | null
@@ -177,8 +184,9 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          status?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Update: {
           created_at?: string | null
@@ -186,8 +194,9 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          status?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }

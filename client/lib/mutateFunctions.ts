@@ -21,7 +21,10 @@ export const UpdateWorkflow = async ({
     description,
     definition,
   });
-  console.log("Update WRKFLOW: " ,JSON.stringify({ name, description, definition }, null, 2));
+  console.log(
+    "Update WRKFLOW: ",
+    JSON.stringify({ name, description, definition }, null, 2)
+  );
   return response.data;
 };
 
@@ -33,6 +36,21 @@ export const ExecuteWorkflow = async (id: string) => {
 export const CreateSession = async (workflowId: string) => {
   const response = await api.post(`/sessions`, {
     workflow_id: workflowId,
+  });
+  return response.data;
+};
+
+export const SendMessage = async (
+  sessionId: string,
+  message: string,
+  metadata?: {
+    workflow_id?: string;
+    is_first?: boolean;
+  }
+) => {
+  const response = await api.post(`/sessions/${sessionId}/messages`, {
+    message,
+    metadata,
   });
   return response.data;
 };

@@ -119,7 +119,7 @@ export default function FileUploadDirect() {
     return () => {
       cancelled = true;
     };
-  }, [fileWrapper, selectedWorkflow, supabase, refetch]);
+  }, [fileWrapper, supabase, refetch]);
 
   if (error) return <ErrorCard description="Error loading document" />;
   if (isLoading) return <Skeleton className="w-full min-h-28" />;

@@ -4,7 +4,7 @@ import { SidebarWithChatHistory } from "./components/SidebarChatHistory";
 const ChatLoayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      <SidebarWithChatHistory />
+      <SidebarWithChatHistory  />
       {children}
     </div>
   );

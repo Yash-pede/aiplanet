@@ -5,7 +5,7 @@ from app.dao.workflows_dao import WorkflowsDAO
 from app.schemas.workflow import WorkflowCreate, WorkflowOut, WorkflowUpdate
 from app.services.documents_service import DocumentsService
 from app.services.chat_service import ChatService
-from app.schemas.chat import ChatSessionCreate
+from app.schemas.chat import ChatSessionCreate, ChatMessageCreate
 
 
 class WorkflowsService:
@@ -96,10 +96,16 @@ class WorkflowsService:
             # Generate initial chat session and response
             new_session = self.chat_service.create_session(
                 payload=ChatSessionCreate(
-                    workflow_id=workflow_id, name=workflow.definition.query
+                    workflow_id=workflow_id, name=str(workflow.definition.query)
                 )
             )
             print(f"[WorkflowService] Created new session: {new_session['id']}")
+
+            assistant_response = self.chat_service.process_chat_message(
+                payload=ChatMessageCreate(message=str(workflow.definition.query)),
+                session_id=new_session["id"],
+            )
+            print(f"\n\n\n\n\n\n\n[WorkflowService] Assistant response: {assistant_response}")
 
             # ✅ Mark workflow as completed
             self.update_workflow(

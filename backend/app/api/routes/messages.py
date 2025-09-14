@@ -27,6 +27,7 @@ async def create_message(
                 workflow_id=payload.metadata.workflow_id, name=payload.message
             )
         )
+        service.process_chat_message(new_session.id, payload)
         return new_session.id
 
 

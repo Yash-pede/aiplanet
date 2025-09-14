@@ -192,19 +192,21 @@ export function CanvasSidebar() {
       </SidebarContent>
       <SidebarFooter className="flex flex-row items-center gap-2 justify-around">
         <p> Status: </p>{" "}
-        <Badge
-          variant={
-            workflow.status === "pending"
-              ? "outline"
-              : workflow.status === "completed"
-              ? "default"
-              : workflow.status === "in_progress"
-              ? "secondary"
-              : "destructive"
-          }
-        >
-          {workflow.status}
-        </Badge>
+        {!isLoading && workflow.status && (
+          <Badge
+            variant={
+              workflow.status === "pending"
+                ? "outline"
+                : workflow.status === "completed"
+                ? "default"
+                : workflow.status === "in_progress"
+                ? "secondary"
+                : "destructive"
+            }
+          >
+            {workflow.status}
+          </Badge>
+        )}
         <Button size="icon" onClick={() => refetch()} disabled={isLoading}>
           {isLoading || isRefetching ? (
             <Loader2 className="animate-spin" />
