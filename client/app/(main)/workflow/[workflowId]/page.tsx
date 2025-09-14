@@ -11,8 +11,12 @@ import Loading from "./components/loading";
 import { useWorkflowStore } from "@/providers/workflow-store-provider";
 import { Workflow } from "@/common/types";
 
-const WorkflowIdPage = ({ params }: { params: Promise<{ id: string }> }) => {
-  const { id } = use(params);
+const WorkflowIdPage = ({
+  params,
+}: {
+  params: Promise<{ workflowId: string }>;
+}) => {
+  const { workflowId: id } = use(params);
 
   const {
     data: workflow,

@@ -1,9 +1,9 @@
 import { BookOpen, FileInput, FileOutput, Stars } from "lucide-react";
 import { CustomNode } from "./types";
-import InputNode from "@/app/(main)/workflow/[id]/components/nodes/InputNode";
-import LLMNode from "@/app/(main)/workflow/[id]/components/nodes/LLMNode";
-import KnowledgeBaseNode from "@/app/(main)/workflow/[id]/components/nodes/KnowledgeBaseNode";
-import OutputNode from "@/app/(main)/workflow/[id]/components/nodes/OutputNode";
+import InputNode from "@/app/(main)/workflow/[workflowId]/components/nodes/InputNode";
+import LLMNode from "@/app/(main)/workflow/[workflowId]/components/nodes/LLMNode";
+import KnowledgeBaseNode from "@/app/(main)/workflow/[workflowId]/components/nodes/KnowledgeBaseNode";
+import OutputNode from "@/app/(main)/workflow/[workflowId]/components/nodes/OutputNode";
 import { Position } from "@xyflow/react";
 
 export const nodes: CustomNode[] = [

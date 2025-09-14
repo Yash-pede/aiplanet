@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { MessageCircleMore, Play } from "lucide-react";
+import { Loader2, MessageCircleMore, Play } from "lucide-react";
 import React from "react";
 import {
   Tooltip,
@@ -20,7 +20,7 @@ const ChatWithWorkflow = () => {
     mutationFn: CreateSession,
     onSuccess: (data) => {
       router.push(
-        `/workflow/${selectedWorkflow?.id}/chat?sessionId=${data.id}`
+        `/workflow/${selectedWorkflow?.id}/chat/session/${data.id}`
       );
     },
     onError: (error) => {
@@ -36,7 +36,7 @@ const ChatWithWorkflow = () => {
           variant="default"
           className="rounded-full w-12 h-12 p-0 bg-blue-600 hover:bg-blue-700"
         >
-          {isPending && <MessageCircleMore className="h-4 w-4" />}
+          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircleMore className="h-4 w-4" />}
         </Button>
       </TooltipTrigger>
       <TooltipContent>
