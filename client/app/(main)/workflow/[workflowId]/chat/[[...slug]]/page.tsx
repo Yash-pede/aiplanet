@@ -32,8 +32,6 @@ import {
 import { use, useEffect, useState, useCallback, useRef } from "react";
 import { cn, isUuid } from "@/utils/utils";
 import NewChat from "./components/NewChat";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
 import { GetAllMessagesBySessionId } from "@/lib/queryFunctions";
 import { SendFirstMessage, SendMessage } from "@/lib/mutateFunctions";
 import { useRouter } from "next/navigation";
@@ -52,220 +50,130 @@ export default function ChatPage({
 }: {
   params: Promise<{ workflowId: string; slug?: string[] }>;
 }) {
-  const supabase = createClient();
-  const queryClient = useQueryClient();
-  const [prompt, setPrompt] = useState("");
   const { workflowId, slug } = use(params);
   const router = useRouter();
-  const realtimeChannelRef = useRef<any>(null);
 
   const sessionId = slug?.[0];
   const isValidSession = !!(sessionId && isUuid(sessionId));
 
-  const {
-    data: chatMessages = [],
-    isLoading: isLoadingMessages,
-    error: messagesError,
-  } = useQuery<ChatMessage[]>({
-    queryKey: ["chat_messages", sessionId],
-    queryFn: async () => GetAllMessagesBySessionId(sessionId),
-    enabled: isValidSession,
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: false,
-  });
+  const [prompt, setPrompt] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
+  const [isSending, setIsSending] = useState(false);
 
-  const addMessageToCache = useCallback(
-    (message: ChatMessage) => {
-      queryClient.setQueryData<ChatMessage[]>(
-        ["chat_messages", sessionId],
-        (oldData = []) => {
-          const exists = oldData.some((msg) => msg.id === message.id);
-          if (exists) {
-            return oldData.map((msg) =>
-              msg.id === message.id ? message : msg
-            );
-          }
-          return [...oldData, message];
+  useEffect(() => {
+    let mounted = true;
+    const fetchMessages = async () => {
+      if (!isValidSession) {
+        if (mounted) setIsLoadingMessages(false);
+        return;
+      }
+      try {
+        if (mounted) setIsLoadingMessages(true);
+        const data = await GetAllMessagesBySessionId(sessionId);
+        if (mounted) {
+          setMessages(Array.isArray(data) ? data : []);
         }
-      );
-    },
-    [queryClient, sessionId]
-  );
+      } catch (err) {
+        console.error("Failed to load messages", err);
+      } finally {
+        if (mounted) setIsLoadingMessages(false);
+      }
+    };
+    fetchMessages();
+    return () => {
+      mounted = false;
+    };
+  }, [sessionId, isValidSession]);
 
-  const sendMessageMutation = useMutation({
-    mutationFn: async (message: string) => {
-      const optimisticUserMessage: ChatMessage = {
+  const mergeIncoming = useCallback((incoming: ChatMessage | ChatMessage[]) => {
+    const incomingArr = Array.isArray(incoming) ? incoming : [incoming];
+
+    setMessages((prev) => {
+      const map = new Map<string, ChatMessage>();
+      for (const m of prev) map.set(m.id, m);
+
+      for (const m of incomingArr) {
+        map.set(m.id, m);
+      }
+
+      const merged = Array.from(map.values()).sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+
+      return merged;
+    });
+  }, []);
+
+  const handleSubmit = useCallback(
+    async (e?: React.FormEvent) => {
+      if (e) e.preventDefault();
+      if (!prompt.trim() || isSending) return;
+
+      setIsSending(true);
+
+      if (!isValidSession) {
+        try {
+          const data = await SendFirstMessage(prompt.trim(), {
+            is_first: true,
+            workflow_id: workflowId,
+          });
+
+          setPrompt("");
+          router.push(`/workflow/${workflowId}/chat/${data.session_id}`);
+        } catch (err) {
+          console.error("Failed to send first message", err);
+        } finally {
+          setIsSending(false);
+        }
+        return;
+      }
+
+      const tempUser: ChatMessage = {
         id: `temp-user-${Date.now()}`,
         session_id: sessionId!,
         role: "user",
-        message: message,
+        message: prompt.trim(),
         created_at: new Date().toISOString(),
       };
+      setMessages((prev) => [...prev, tempUser]);
 
-      addMessageToCache(optimisticUserMessage);
-
-      const optimisticAssistantMessage: ChatMessage = {
-        id: `temp-assistant-${Date.now()}`,
-        session_id: sessionId!,
-        role: "assistant",
-        message: null,
-        metadata: { status: "generating" },
-        created_at: new Date().toISOString(),
-      };
-
-      addMessageToCache(optimisticAssistantMessage);
-
-      return SendMessage(sessionId, message);
-    },
-    onSuccess: (data) => {
-      setPrompt("");
-      queryClient.setQueryData<ChatMessage[]>(
-        ["chat_messages", sessionId],
-        (oldData = []) => oldData.filter((msg) => !msg.id.startsWith("temp-"))
-      );
-    },
-    onError: (error) => {
-      console.error("Failed to send message:", error);
-      queryClient.setQueryData<ChatMessage[]>(
-        ["chat_messages", sessionId],
-        (oldData = []) => oldData.filter((msg) => !msg.id.startsWith("temp-"))
-      );
-    },
-  });
-
-  const { mutate: sendFirstMessage, isPending: isLoadingNewMessage } =
-    useMutation({
-      mutationFn: async (message: string) =>
-        SendFirstMessage(message, {
-          is_first: true,
-          workflow_id: workflowId,
-        }),
-      onSuccess: (data) => {
+      try {
+        const resp = await SendMessage(sessionId!, prompt.trim());
+        mergeIncoming(resp as ChatMessage | ChatMessage[]);
         setPrompt("");
-        router.push(`/workflow/${workflowId}/chat/${data.session_id}`);
-      },
-      onError: (error) => {
-        console.error("Failed to send first message:", error);
-      },
-    });
-
-  const handleSubmit = useCallback(() => {
-    if (!prompt.trim() || sendMessageMutation.isPending || isLoadingNewMessage)
-      return;
-
-    if (!isValidSession) {
-      return sendFirstMessage(prompt.trim());
-    } else {
-      sendMessageMutation.mutate(prompt.trim());
-    }
-  }, [
-    prompt,
-    sendMessageMutation,
-    isValidSession,
-    sendFirstMessage,
-    isLoadingNewMessage,
-  ]);
-
-  useEffect(() => {
-    if (!isValidSession) return;
-
-    if (realtimeChannelRef.current) {
-      supabase.removeChannel(realtimeChannelRef.current);
-    }
-
-    const channel = supabase
-      .channel(`chat_messages_${sessionId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "chat_messages",
-          filter: `session_id=eq.${sessionId}`,
-        },
-        (payload) => {
-          console.log("Realtime event:", payload);
-
-          queryClient.setQueryData<ChatMessage[]>(
-            ["chat_messages", sessionId],
-            (oldData = []) => {
-              const newMessage = payload.new as ChatMessage;
-
-              if (!newMessage) return oldData;
-
-              if (payload.eventType === "INSERT") {
-                const exists = oldData.some((msg) => msg.id === newMessage.id);
-                if (exists) return oldData;
-
-                const updatedData = [...oldData, newMessage];
-                return updatedData.sort(
-                  (a, b) =>
-                    new Date(a.created_at).getTime() -
-                    new Date(b.created_at).getTime()
-                );
-              }
-
-              if (payload.eventType === "UPDATE") {
-                return oldData.map((msg) =>
-                  msg.id === newMessage.id ? newMessage : msg
-                );
-              }
-
-              if (payload.eventType === "DELETE") {
-                const deletedMessage = payload.old as ChatMessage;
-                return oldData.filter((msg) => msg.id !== deletedMessage.id);
-              }
-
-              return oldData;
-            }
-          );
-        }
-      )
-      .subscribe();
-
-    realtimeChannelRef.current = channel;
-
-    return () => {
-      if (realtimeChannelRef.current) {
-        supabase.removeChannel(realtimeChannelRef.current);
+      } catch (err) {
+        console.error("Failed to send message", err);
+        setMessages((prev) =>
+          prev.filter((m) => !m.id.startsWith("temp-user-"))
+        );
+      } finally {
+        setIsSending(false);
       }
-    };
-  }, [sessionId, isValidSession, supabase, queryClient]);
+    },
+    [
+      prompt,
+      isSending,
+      isValidSession,
+      sessionId,
+      workflowId,
+      router,
+      mergeIncoming,
+    ]
+  );
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [chatMessages]);
+  }, [messages]);
 
   if (isLoadingMessages) {
     return (
       <div className="flex h-[calc(100vh-4rem)] w-full flex-col overflow-hidden">
         <div className="flex-1 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      </div>
-    );
-  }
-
-  if (messagesError) {
-    return (
-      <div className="flex h-[calc(100vh-4rem)] w-full flex-col overflow-hidden">
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-red-500 mb-2">Failed to load messages</p>
-            <Button
-              onClick={() =>
-                queryClient.invalidateQueries({
-                  queryKey: ["chat_messages", sessionId],
-                })
-              }
-            >
-              Retry
-            </Button>
-          </div>
         </div>
       </div>
     );
@@ -279,12 +187,12 @@ export default function ChatPage({
       <ChatContainerRoot className="relative flex-1 space-y-0 overflow-y-auto px-4 py-12">
         <ChatContainerContent className="space-y-12 px-4 py-12">
           {isValidSession ? (
-            chatMessages.length > 0 ? (
+            messages.length > 0 ? (
               <>
-                {chatMessages.map((message, index) => {
+                {messages.map((message, index) => {
                   const isAssistant =
                     message.role === "assistant" || message.role === "system";
-                  const isLastMessage = index === chatMessages.length - 1;
+                  const isLastMessage = index === messages.length - 1;
                   const isGenerating =
                     message?.metadata?.status === "generating";
 
@@ -409,7 +317,7 @@ export default function ChatPage({
                     </Message>
                   );
                 })}
-                {/* <div ref={messagesEndRef} /> */}
+                <div ref={messagesEndRef} />
               </>
             ) : (
               <div className="flex items-center justify-center h-full">
@@ -426,71 +334,69 @@ export default function ChatPage({
 
       {/* Input */}
       <div className="inset-x-0 bottom-0 mx-auto w-full max-w-3xl shrink-0 px-3 pb-3 md:px-5 md:pb-5">
-        <PromptInput
-          isLoading={sendMessageMutation.isPending || isLoadingNewMessage}
-          value={prompt}
-          onValueChange={setPrompt}
-          onSubmit={handleSubmit}
-          className="border-input bg-popover relative z-10 w-full rounded-3xl border p-0 pt-1 shadow-xs"
-        >
-          <div className="flex flex-col">
-            <PromptInputTextarea
-              placeholder="Ask anything"
-              className="min-h-[44px] pt-3 pl-4 text-base leading-[1.3]"
-              disabled={sendMessageMutation.isPending || isLoadingNewMessage}
-            />
+        <form onSubmit={handleSubmit}>
+          <PromptInput
+            isLoading={isSending}
+            value={prompt}
+            onValueChange={setPrompt}
+            onSubmit={handleSubmit}
+            className="border-input bg-popover relative z-10 w-full rounded-3xl border p-0 pt-1 shadow-xs"
+          >
+            <div className="flex flex-col">
+              <PromptInputTextarea
+                placeholder="Ask anything"
+                className="min-h-[44px] pt-3 pl-4 text-base leading-[1.3]"
+                disabled={isSending}
+              />
 
-            <PromptInputActions className="mt-5 flex w-full items-center justify-between gap-2 px-3 pb-3">
-              <div className="flex items-center gap-2">
-                <PromptInputAction tooltip="Add a new action">
+              <PromptInputActions className="mt-5 flex w-full items-center justify-between gap-2 px-3 pb-3">
+                <div className="flex items-center gap-2">
+                  <PromptInputAction tooltip="Add a new action">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="size-9 rounded-full"
+                    >
+                      <Plus size={18} />
+                    </Button>
+                  </PromptInputAction>
+
+                  <PromptInputAction tooltip="Search">
+                    <Button variant="outline" className="rounded-full">
+                      <Globe size={18} />
+                      Search
+                    </Button>
+                  </PromptInputAction>
+
+                  <PromptInputAction tooltip="More actions">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="size-9 rounded-full"
+                    >
+                      <MoreHorizontal size={18} />
+                    </Button>
+                  </PromptInputAction>
+                </div>
+
+                <div className="flex items-center gap-2">
                   <Button
-                    variant="outline"
+                    type="submit"
                     size="icon"
+                    disabled={!prompt.trim() || isSending}
                     className="size-9 rounded-full"
                   >
-                    <Plus size={18} />
+                    {isSending ? (
+                      <Loader2 size={18} className="animate-spin" />
+                    ) : (
+                      <ArrowUp size={18} />
+                    )}
                   </Button>
-                </PromptInputAction>
-
-                <PromptInputAction tooltip="Search">
-                  <Button variant="outline" className="rounded-full">
-                    <Globe size={18} />
-                    Search
-                  </Button>
-                </PromptInputAction>
-
-                <PromptInputAction tooltip="More actions">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="size-9 rounded-full"
-                  >
-                    <MoreHorizontal size={18} />
-                  </Button>
-                </PromptInputAction>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  size="icon"
-                  disabled={
-                    !prompt.trim() ||
-                    sendMessageMutation.isPending ||
-                    isLoadingNewMessage
-                  }
-                  onClick={handleSubmit}
-                  className="size-9 rounded-full"
-                >
-                  {sendMessageMutation.isPending || isLoadingNewMessage ? (
-                    <Loader2 size={18} className="animate-spin" />
-                  ) : (
-                    <ArrowUp size={18} />
-                  )}
-                </Button>
-              </div>
-            </PromptInputActions>
-          </div>
-        </PromptInput>
+                </div>
+              </PromptInputActions>
+            </div>
+          </PromptInput>
+        </form>
       </div>
     </div>
   );

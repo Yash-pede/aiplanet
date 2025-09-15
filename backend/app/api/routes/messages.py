@@ -30,7 +30,7 @@ async def create_message(
         )
         # print(f"\n\n\n\n\ new session {new_session}\n\n\n\n")
 
-        asyncio.create_task(service.process_chat_message(new_session["id"], payload))
+        await service.process_chat_message(new_session["id"], payload)
 
         return {"session_id": new_session["id"]}
 
@@ -42,10 +42,4 @@ async def create_message_with_session(
     client: Client = Depends(get_supabase_user),
 ):
     service = ChatService(client)
-    asyncio.create_task(service.process_chat_message(session_id, payload))
-    return {
-        "session_id": session_id,
-        "message": payload.message,
-        "role": "assistant",
-        "status": "generating",
-    }
+    return await service.process_chat_message(session_id, payload)
