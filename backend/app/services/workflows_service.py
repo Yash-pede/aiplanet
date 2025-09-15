@@ -101,7 +101,7 @@ class WorkflowsService:
             )
             print(f"[WorkflowService] Created new session: {new_session['id']}")
 
-            assistant_response = self.chat_service.process_chat_message(
+            assistant_response = await self.chat_service.process_chat_message(
                 payload=ChatMessageCreate(message=str(workflow.definition.query)),
                 session_id=new_session["id"],
             )

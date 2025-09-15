@@ -6,6 +6,7 @@ from app.api.deps import get_supabase_user
 from app.services.chat_service import ChatService
 from app.schemas.chat import ChatMessageCreate, ChatMessageOut
 from app.schemas.chat import ChatSessionCreate
+import asyncio
 
 router = APIRouter()
 
@@ -27,15 +28,24 @@ async def create_message(
                 workflow_id=payload.metadata.workflow_id, name=payload.message
             )
         )
-        service.process_chat_message(new_session.id, payload)
-        return new_session.id
+        # print(f"\n\n\n\n\ new session {new_session}\n\n\n\n")
+
+        asyncio.create_task(service.process_chat_message(new_session["id"], payload))
+
+        return {"session_id": new_session["id"]}
 
 
-@router.post("/sessions/{session_id}/messages", response_model=ChatMessageOut)
+@router.post("/sessions/{session_id}/messages")
 async def create_message_with_session(
     session_id: UUID,
     payload: ChatMessageCreate,
     client: Client = Depends(get_supabase_user),
 ):
     service = ChatService(client)
-    return service.process_chat_message(session_id, payload)
+    asyncio.create_task(service.process_chat_message(session_id, payload))
+    return {
+        "session_id": session_id,
+        "message": payload.message,
+        "role": "assistant",
+        "status": "generating",
+    }

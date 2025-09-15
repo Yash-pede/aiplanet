@@ -7,9 +7,10 @@ class SessionsDAO:
     def __init__(self, client: Client):
         self.client = client
 
-    def create_session(self, workflow_id: UUID, name: str) -> Dict[str, Any]:
+    def create_session(self, workflow_id: UUID, name: str):
         data = {"workflow_id": str(workflow_id), "title": name}
         response = self.client.table("chat_sessions").insert(data).execute()
+        # print(f"Created session {response.data[0]['id']}\n\n\n\n\n")
         return response.data[0]
 
     def list_sessions_by_workflow(self, workflow_id: UUID) -> List[Dict[str, Any]]:

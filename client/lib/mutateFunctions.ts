@@ -54,3 +54,17 @@ export const SendMessage = async (
   });
   return response.data;
 };
+
+export const SendFirstMessage = async (
+  message: string,
+  metadata?: {
+    workflow_id?: string;
+    is_first?: boolean;
+  }
+) => {
+  const response = await api.post(`/messages`, {
+    message,
+    metadata,
+  });
+  return response.data;
+};

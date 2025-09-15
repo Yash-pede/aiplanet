@@ -21,7 +21,6 @@ import {
   ArrowUp,
   Copy,
   Globe,
-  Mic,
   MoreHorizontal,
   Pencil,
   Plus,
@@ -34,15 +33,16 @@ import { use, useEffect, useState, useCallback } from "react";
 import { cn, isUuid } from "@/utils/utils";
 import NewChat from "./components/NewChat";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Database } from "@/database.types";
 import { createClient } from "@/lib/supabase/client";
 import { GetAllMessagesBySessionId } from "@/lib/queryFunctions";
-import { SendMessage } from "@/lib/mutateFunctions";
+import { SendFirstMessage, SendMessage } from "@/lib/mutateFunctions";
+import { useRouter } from "next/navigation";
+
 type ChatMessage = {
   id: string;
   session_id: string;
   role: "user" | "assistant" | "system";
-  message: string;
+  message: string | null;
   metadata?: any;
   created_at: string;
 };
@@ -56,10 +56,11 @@ export default function ChatPage({
   const queryClient = useQueryClient();
   const [prompt, setPrompt] = useState("");
   const { workflowId, slug } = use(params);
+  const router = useRouter();
 
   const sessionId = slug?.[0];
   const isValidSession = !!(sessionId && isUuid(sessionId));
-  console.log(isValidSession);
+
   const {
     data: chatMessages = [],
     isLoading: isLoadingMessages,
@@ -71,21 +72,47 @@ export default function ChatPage({
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
+
+  // 🚫 removed invalidateQueries – realtime handles appending
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => SendMessage(sessionId, message),
     onSuccess: () => {
       setPrompt("");
-      queryClient.invalidateQueries({ queryKey: ["chat_messages", sessionId] });
     },
     onError: (error) => {
       console.error("Failed to send message:", error);
     },
   });
+
+  const {
+    mutate: sendFirstMessage,
+    isPending: isLoadingNewMessage,
+  } = useMutation({
+    mutationFn: async (message: string) =>
+      SendFirstMessage(message, {
+        is_first: true,
+        workflow_id: workflowId,
+      }),
+    onSuccess: (data) => {
+      setPrompt("");
+      // new session created → redirect
+      router.push(`/workflow/${workflowId}/chat/${data.session_id}`);
+    },
+    onError: (error) => {
+      console.error("Failed to send message:", error);
+    },
+  });
+
   const handleSubmit = useCallback(() => {
     if (!prompt.trim() || sendMessageMutation.isPending) return;
-    sendMessageMutation.mutate(prompt.trim());
-  }, [prompt, sendMessageMutation]);
+    if (!isValidSession) {
+      return sendFirstMessage(prompt.trim());
+    } else {
+      sendMessageMutation.mutate(prompt.trim());
+    }
+  }, [prompt, sendMessageMutation, isValidSession, sendFirstMessage]);
 
+  // ✅ realtime subscription (append new messages to cache)
   useEffect(() => {
     if (!isValidSession) return;
 
@@ -94,22 +121,32 @@ export default function ChatPage({
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*", 
           schema: "public",
           table: "chat_messages",
           filter: `session_id=eq.${sessionId}`,
         },
         (payload) => {
-          console.log("New message received:", payload.new);
+          console.log("Realtime event:", payload);
 
           queryClient.setQueryData<ChatMessage[]>(
             ["chat_messages", sessionId],
             (oldData = []) => {
               const newMessage = payload.new as ChatMessage;
-              const exists = oldData.some((msg) => msg.id === newMessage.id);
-              if (exists) return oldData;
 
-              return [...oldData, newMessage];
+              const exists = oldData.some((msg) => msg.id === newMessage.id);
+
+              if (payload.eventType === "INSERT") {
+                return exists ? oldData : [...oldData, newMessage];
+              }
+
+              if (payload.eventType === "UPDATE") {
+                return oldData.map((msg) =>
+                  msg.id === newMessage.id ? newMessage : msg
+                );
+              }
+
+              return oldData;
             }
           );
         }
@@ -120,6 +157,7 @@ export default function ChatPage({
       supabase.removeChannel(channel);
     };
   }, [sessionId, isValidSession, supabase, queryClient]);
+
   if (isLoadingMessages) {
     return (
       <div className="flex h-[calc(100vh-4rem)] w-full flex-col overflow-hidden">
@@ -129,6 +167,7 @@ export default function ChatPage({
       </div>
     );
   }
+
   if (messagesError) {
     return (
       <div className="flex h-[calc(100vh-4rem)] w-full flex-col overflow-hidden">
@@ -151,7 +190,10 @@ export default function ChatPage({
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] w-full flex-col overflow-hidden">
+    <div
+      className="flex h-[calc(100vh-4rem)] w-full flex-col overflow-hidden"
+      suppressHydrationWarning
+    >
       <ChatContainerRoot className="relative flex-1 space-y-0 overflow-y-auto px-4 py-12">
         <ChatContainerContent className="space-y-12 px-4 py-12">
           {isValidSession ? (
@@ -171,12 +213,24 @@ export default function ChatPage({
                   >
                     {isAssistant ? (
                       <div className="group flex w-full flex-col gap-0">
-                        <MessageContent
-                          // markdown
-                          className="text-foreground prose w-full flex-1 rounded-lg bg-transparent p-0"
-                        >
-                          {message.message}
-                        </MessageContent>
+                        {message?.metadata?.status === "generating" ? (
+                          <Message className="mx-auto flex w-full max-w-3xl flex-col gap-2 px-0 md:px-6 items-start">
+                            <div className="flex items-center gap-2 p-4 bg-muted/50 rounded-lg">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span className="text-sm text-muted-foreground">
+                                Thinking...
+                              </span>
+                            </div>
+                          </Message>
+                        ) : (
+                          <MessageContent
+                            markdown
+                            className="text-foreground prose w-full flex-1 rounded-lg bg-transparent p-0"
+                          >
+                            {message.message ?? ""}
+                          </MessageContent>
+                        )}
+
                         <MessageActions
                           className={cn(
                             "-ml-2.5 flex gap-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100",
@@ -189,7 +243,9 @@ export default function ChatPage({
                               size="icon"
                               className="rounded-full"
                               onClick={() =>
-                                navigator.clipboard.writeText(message.message)
+                                navigator.clipboard.writeText(
+                                  message.message ?? ""
+                                )
                               }
                             >
                               <Copy />
@@ -219,15 +275,11 @@ export default function ChatPage({
                       <div className="group flex flex-col items-end gap-1">
                         <MessageContent
                           className="bg-muted max-w-[85%] rounded-3xl px-5 py-2.5 sm:max-w-[75%]"
-                          // markdown
+                          markdown
                         >
-                          {message.message}
+                          {message.message ?? ""}
                         </MessageContent>
-                        <MessageActions
-                          className={cn(
-                            "flex gap-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-                          )}
-                        >
+                        <MessageActions className="flex gap-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
                           <MessageAction tooltip="Edit" delayDuration={100}>
                             <Button
                               variant="ghost"
@@ -252,7 +304,9 @@ export default function ChatPage({
                               size="icon"
                               className="rounded-full"
                               onClick={() =>
-                                navigator.clipboard.writeText(message.message)
+                                navigator.clipboard.writeText(
+                                  message.message ?? ""
+                                )
                               }
                             >
                               <Copy />
@@ -275,8 +329,7 @@ export default function ChatPage({
             <NewChat />
           )}
 
-          {/* Show loading indicator when sending message */}
-          {sendMessageMutation.isPending && (
+          {/* {sendMessageMutation.isPending && (
             <Message className="mx-auto flex w-full max-w-3xl flex-col gap-2 px-0 md:px-6 items-start">
               <div className="flex items-center gap-2 p-4 bg-muted/50 rounded-lg">
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -285,10 +338,11 @@ export default function ChatPage({
                 </span>
               </div>
             </Message>
-          )}
+          )} */}
         </ChatContainerContent>
       </ChatContainerRoot>
 
+      {/* Input */}
       <div className="inset-x-0 bottom-0 mx-auto w-full max-w-3xl shrink-0 px-3 pb-3 md:px-5 md:pb-5">
         <PromptInput
           isLoading={sendMessageMutation.isPending}
@@ -300,7 +354,7 @@ export default function ChatPage({
           <div className="flex flex-col">
             <PromptInputTextarea
               placeholder="Ask anything"
-              className="min-h-[44px] pt-3 pl-4 text-base leading-[1.3] sm:text-base md:text-base"
+              className="min-h-[44px] pt-3 pl-4 text-base leading-[1.3]"
               disabled={sendMessageMutation.isPending}
             />
 
@@ -333,6 +387,7 @@ export default function ChatPage({
                   </Button>
                 </PromptInputAction>
               </div>
+
               <div className="flex items-center gap-2">
                 <Button
                   size="icon"

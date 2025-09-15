@@ -16,7 +16,7 @@ class ChatService:
         self.messages_dao = MessagesDAO(client)
         self.workflows__dao = WorkflowsDAO(client)
 
-    def create_session(self, payload: ChatSessionCreate) -> Any:
+    def create_session(self, payload: ChatSessionCreate):
         session = self.sessions_dao.create_session(payload.workflow_id, payload.name)
         return session
 
@@ -66,7 +66,7 @@ class ChatService:
         )
         return ChatMessageOut(**message_data)
 
-    def process_chat_message(
+    async def process_chat_message(
         self, session_id: UUID, payload: ChatMessageCreate
     ) -> ChatMessageOut:
         session = self.sessions_dao.get_session(session_id)
