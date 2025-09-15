@@ -63,6 +63,7 @@ class DocumentsService:
     def process_and_store_document(
         self,
         document_id: UUID,
+        workflow_id: UUID,
         embedding_model: Optional[str],
     ) -> dict:
         file_path = self.download_document(document_id)
@@ -71,7 +72,7 @@ class DocumentsService:
         documents = loader.load()
 
         chunks = split_documents(documents)
-        add_to_chroma(chunks)
+        add_to_chroma(chunks,str(workflow_id))
         for i, chunk in enumerate(chunks):
             chunk.metadata["document_id"] = str(document_id)
             chunk.metadata["chunk_index"] = i

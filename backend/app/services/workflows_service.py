@@ -89,6 +89,7 @@ class WorkflowsService:
             document_response = self.documents_service.process_and_store_document(
                 document_id=document.id,
                 embedding_model=workflow.definition.embeddingModel,
+                workflow_id=workflow_id,
             )
             print(
                 f"[WorkflowService] Document processed and stored: {document_response}"

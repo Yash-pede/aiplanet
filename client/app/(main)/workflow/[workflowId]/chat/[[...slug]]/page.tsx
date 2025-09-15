@@ -329,7 +329,7 @@ export default function ChatPage({
             <NewChat />
           )}
 
-          {/* {sendMessageMutation.isPending && (
+          {sendMessageMutation.isPending && (
             <Message className="mx-auto flex w-full max-w-3xl flex-col gap-2 px-0 md:px-6 items-start">
               <div className="flex items-center gap-2 p-4 bg-muted/50 rounded-lg">
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -338,7 +338,7 @@ export default function ChatPage({
                 </span>
               </div>
             </Message>
-          )} */}
+          )}
         </ChatContainerContent>
       </ChatContainerRoot>
 

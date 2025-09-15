@@ -35,6 +35,7 @@ class ChatService:
         self,
         user_message: str,
         system_prompt: str,
+        workflow_id: UUID,
         temperature: float = 0.7,
         model: str = "gemini-2.5-pro",
     ) -> str:
@@ -43,6 +44,7 @@ class ChatService:
             model=model,
             system_prompt=system_prompt,
             temperature=temperature,
+            workflow_id=str(workflow_id),
         )
 
         return response
@@ -99,8 +101,9 @@ class ChatService:
             model=(
                 workflow.definition.llmModel
                 if workflow and workflow.definition and workflow.definition.llmModel
-                else "gemini-2.5-pro"
+                else "gemini-2.5-flash"
             ),
+            workflow_id=session["workflow_id"],
         )
 
         # 3. Store and return assistant message

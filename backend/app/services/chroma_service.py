@@ -31,13 +31,15 @@ def split_documents(documents: list[Document]):
     return text_splitter.split_documents(documents)
 
 
-def add_to_chroma(chunks: list[Document]):
+def add_to_chroma(chunks: list[Document], workflow_id: str):
     db = Chroma(
         persist_directory=settings.CHROMA_PATH,
         embedding_function=get_gemini_embedding_function(),
     )
 
     chunks_with_ids = calculate_chunk_ids(chunks)
+    for chunk in chunks_with_ids:
+        chunk.metadata["workflow_id"] = workflow_id
 
     # Add or Update the documents.
     existing_items = db.get(include=[])  # IDs are always included by default
@@ -96,7 +98,8 @@ def clear_database():
 def query_rag(
     query_text: str,
     system_prompt: str,
-    model: str ,
+    model: str,
+    workflow_id: str,
     temperature: float,
     top_k: int = 5,
 ):
@@ -107,7 +110,9 @@ def query_rag(
     )
 
     # Search the DB.
-    results = db.similarity_search_with_score(query_text, k=top_k)
+    results = db.similarity_search_with_score(
+        query_text, k=top_k, filter={"workflow_id": workflow_id}
+    )
     print(f"Found {len(results)} {results} relevant chunks.")
 
     context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
@@ -121,7 +126,7 @@ def query_rag(
         max_tokens=None,
         timeout=None,
         max_retries=2,
-        )
+    )
     response_text = llm.invoke(prompt)
 
     sources = [doc.metadata.get("id", None) for doc, _score in results]

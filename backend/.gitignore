@@ -31,3 +31,6 @@ pip-delete-this-arg.txt
 # Build artifacts (if applicable)
 dist/
 build/
+
+chroma
+tmp_docs
