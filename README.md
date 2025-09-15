@@ -20,7 +20,7 @@
 
 ## 🎥 Demo Video
 
-[![Vercel Lite Demo](https://img.youtube.com/vi/wX3cviPwYrM/0.jpg)](https://www.youtube.com/watch?v=wX3cviPwYrM)
+[![Vercel Lite Demo](https://img.youtube.com/vi/i8p12AMvl_U/0.jpg)](https://www.youtube.com/watch?v=i8p12AMvl_U)
 
 
 ---
