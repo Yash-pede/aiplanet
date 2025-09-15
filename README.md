@@ -102,16 +102,6 @@ Before getting started, ensure you have:
    npm run dev
    ```
 
-### 🐳 Docker Deployment
-
-For a quick setup using Docker:
-
-```bash
-docker-compose up -d
-```
-
-This will start both frontend and backend services with all dependencies.
-
 ## 📖 Usage
 
 ### Creating a Workflow
@@ -196,17 +186,6 @@ Key configuration options in `app/core/config.py`:
 - `CORS_ORIGINS`: Allowed CORS origins
 - `DEBUG`: Debug mode toggle
 
-### Environment Variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `SUPABASE_URL` | Supabase project URL | ✅ |
-| `SUPABASE_ANON_KEY` | Supabase anonymous key | ✅ |
-| `SUPABASE_SERVICE_KEY` | Supabase service key | ✅ |
-| `GOOGLE_API_KEY` | Google Gemini API key | ✅ |
-| `CHROMA_PATH` | Chroma database path | ❌ |
-| `TEMP_DIR` | Temporary files directory | ❌ |
-
 ## 🔄 How It Works
 
 ### Document Processing Pipeline
@@ -262,35 +241,7 @@ graph TD
 - [ ] Advanced analytics and insights
 - [ ] Enterprise SSO integration
 
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/Yash-pede/aiplanet/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Yash-pede/aiplanet/discussions)
-- **Email**: support@aiplanet.dev
-
-## 🙏 Acknowledgments
-
-- [FastAPI](https://fastapi.tiangolo.com/) for the excellent web framework
-- [Supabase](https://supabase.com/) for backend-as-a-service
-- [Chroma](https://www.trychroma.com/) for vector database capabilities
-- [Google Gemini](https://deepmind.google/technologies/gemini/) for LLM and embedding services
-
----
 
 <div align="center">
-  <strong>Built with ❤️ by the AiPlanet Team</strong>
+  <strong>Built with ❤️ by the Yash Pede</strong>
 </div>
