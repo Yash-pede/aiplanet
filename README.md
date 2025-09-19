@@ -20,7 +20,7 @@
 
 ## 🎥 Demo Video
 
-[![Vercel Lite Demo](https://img.youtube.com/vi/i8p12AMvl_U/0.jpg)](https://www.youtube.com/watch?v=i8p12AMvl_U)
+[![Chat With PDF Demo](https://img.youtube.com/vi/VIsTnE7qxWU/0.jpg)](https://www.youtube.com/watch?v=VIsTnE7qxWU)
 
 
 ---
