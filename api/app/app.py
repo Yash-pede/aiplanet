@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import traceback
 import uuid
 
-from app.routes import metadata
+from app.routes import metadata, workflow
 
 app = FastAPI(title=settings.APP_NAME)
 
@@ -37,3 +37,4 @@ async def add_request_id_and_handle_exceptions(request: Request, call_next):
 
 
 app.include_router(metadata.router, prefix=settings.API_PREFIX, tags=["metadata"])
+app.include_router(workflow.router, prefix=settings.API_PREFIX+ "/workflows", tags=["workflow"])

@@ -1,6 +1,6 @@
+from supabase import Client
 from fastapi import APIRouter
 from app.core.config import metadata
-
 router = APIRouter()
 
 
