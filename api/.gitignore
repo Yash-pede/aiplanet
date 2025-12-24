@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python/
+env/
+.venv/
+venv/
+Venv/
+venvwrapper/
+.env
+.flaskenv
+*.log
+pip-log.txt
+pip-delete-this-arg.txt
+
+# Editor/IDE specific files
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# FastAPI specific
+# If you are using a database, you might ignore its files
+# e.g., for SQLite
+*.sqlite3
+*.db
+
+# Build artifacts (if applicable)
+dist/
+build/
+
+chroma
+tmp_docs
+
+
+.idea
