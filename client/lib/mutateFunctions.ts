@@ -46,6 +46,7 @@ export const SendMessage = async (
   metadata?: {
     workflow_id?: string;
     is_first?: boolean;
+    search?: boolean;
   }
 ) => {
   const response = await api.post(`/sessions/${sessionId}/messages`, {

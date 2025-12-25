@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useEffect, useId, useState } from "react";
 import { MoonIcon, SunIcon } from "lucide-react";
 
 import { Label } from "@/components/ui/label";
@@ -9,8 +9,14 @@ import { useTheme } from "next-themes";
 
 export default function ThemeSwitcher() {
   const id = useId();
-  const { setTheme, theme } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
   return (
     <div>
       <div className="relative inline-grid h-9 grid-cols-[1fr_1fr] items-center text-sm font-medium">

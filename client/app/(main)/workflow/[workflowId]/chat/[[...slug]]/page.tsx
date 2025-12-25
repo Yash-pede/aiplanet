@@ -35,12 +35,14 @@ import NewChat from "./components/NewChat";
 import { GetAllMessagesBySessionId } from "@/lib/queryFunctions";
 import { SendFirstMessage, SendMessage } from "@/lib/mutateFunctions";
 import { useRouter } from "next/navigation";
+import { RagContextSection, WebSearchSection } from "./components/Accordian";
+import { extractMessageText } from "./components/Helper";
 
 type ChatMessage = {
   id: string;
   session_id: string;
   role: "user" | "assistant" | "system";
-  message: string | null;
+  message: Array<any> | null;
   metadata?: any;
   created_at: string;
 };
@@ -60,6 +62,7 @@ export default function ChatPage({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [search, setSearch] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -140,7 +143,10 @@ export default function ChatPage({
       setMessages((prev) => [...prev, tempUser]);
 
       try {
-        const resp = await SendMessage(sessionId!, prompt.trim());
+        const resp = await SendMessage(sessionId!, prompt.trim(),{
+          workflow_id: workflowId,
+          search: search,
+        });
         mergeIncoming(resp as ChatMessage | ChatMessage[]);
         setPrompt("");
       } catch (err) {
@@ -214,12 +220,24 @@ export default function ChatPage({
                               </span>
                             </div>
                           ) : (
-                            <MessageContent
+                            <>
+                           <MessageContent
                               markdown
                               className="text-foreground prose w-full flex-1 rounded-lg bg-transparent p-0"
-                            >
-                              {message.message ?? ""}
+                              >
+                               {extractMessageText(message.message)}
                             </MessageContent>
+
+{/* 🌐 Web Search Results */}
+{message.metadata?.sources?.web && (
+  <WebSearchSection web={message.metadata.sources.web} />
+)}
+
+{/* 📄 RAG / PDF Context */}
+{message.metadata?.sources?.rag && (
+  <RagContextSection rag={message.metadata.sources.rag} />
+)}
+                              </>
                           )}
 
                           {!isGenerating && (
@@ -361,8 +379,8 @@ export default function ChatPage({
                     </Button>
                   </PromptInputAction>
 
-                  <PromptInputAction tooltip="Search">
-                    <Button variant="outline" className="rounded-full">
+                  <PromptInputAction tooltip="Search" >
+                    <Button variant="outline" className={`rounded-full ${search ? "bg-blue-500 text-white" : ""}`} onClick={() => setSearch(!search)}>
                       <Globe size={18} />
                       Search
                     </Button>

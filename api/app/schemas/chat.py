@@ -8,12 +8,14 @@ class ChatSessionCreate(BaseModel):
     workflow_id: UUID
     name: str
 
-class chatMessageCreateMetadata(BaseModel):
+class ChatMessageCreateMetadata(BaseModel):
     workflow_id: UUID
     is_first: Optional[bool] = None
+    search: bool
+
 class ChatMessageCreate(BaseModel):
     message: str
-    metadata: Optional[chatMessageCreateMetadata] = None
+    metadata: Optional[ChatMessageCreateMetadata] = None
 
 
 class ChatMessageOut(BaseModel):
@@ -26,3 +28,13 @@ class ChatMessageOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class SourcesDict(BaseModel):
+    rag: Optional[str]
+    web: Optional[Any]
+
+
+class QueryRagOut(BaseModel):
+    answer: str
+    used_web: bool
+    sources: SourcesDict
